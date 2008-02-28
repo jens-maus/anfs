@@ -1,0 +1,199 @@
+----------------------------
+aNFS Open Source - ChangeLog
+----------------------------
+
+$Id$
+$URL$
+
+2008-02-28  Jens Langner <Jens.Langner@light-speed.de>
+
+  * misc: now after more than 13 years of no development, the sources
+    of ch_nfs are finally released under the GPL with the full permission
+    of its initial author "Carsten Heyl". Also renamed the project to
+    "aNFS" to make it easier to distinguish between the old AmiTCP
+    based ch_nfs and the new general Amiga oriented NFS client. And
+    hopefully we will be able to get the sources compiled quickly again
+    so that development can continue and we may even move the NFS client
+    forward to be compatible to NFSv3 or even NFSv4 in future. Let it
+    roll! :)
+
+Sat Sep 17 16:37:45 1994  GNU Emacs Lover  (alph@alph3000.xxx.de)
+
+	* added extra Request() if cr_SetUser failed
+
+Sat Aug  6 11:44:08 1994  GNU Emacs Lover  (alph@alph3000.xxx.de)
+
+	* skip long filenames on examine
+
+Tue Jul 19 22:18:21 1994  GNU Emacs Lover  (alph@alph3000.xxx.de)
+
+	* limited standard MaxFileNameLen to 30, introduced LONG_FILENAMES parameter
+
+	* limit ExAll Filenamelen to MAX_AMIGAFILELEN
+
+	* introduced internal flag/added Internal flag to action timer/changed NI to UN
+
+	* fixed empty string bug in dir_Create code and call
+
+Sat Jul  9 16:43:43 1994  GNU Emacs Lover  (alph@alph3000.xxx.de)
+
+	* fixed iocontrol bug reporting GET_WL as GET_MW
+
+Sat Jul  9 16:31:34 1994  GNU Emacs Lover  (root@alph3000.xxx.de)
+
+	* info returns "READ ONLY" when soft write protect is active
+	* added AmiTCP3.0b2 usergroup support (no need to set USER/UMASK anymore)
+	* fixed EXAMINE_ALL bug returning wrong error code
+	* added ED_OWNER support to EXAMINE_ALL
+	* ch_nfsmount sets stack for client now (thanks to Joerg Cyril Hoehle)
+
+
+Sun May  8 15:39:47 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* fixed bug when writing 0 bytes
+	* fixed 2 bugs in WBufDoMelt (these might lead to data loss!)
+
+Sat May  7 19:52:58 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* use netlib TimeZone conversion stuff
+	* activate nearly original sync RPC stuff
+
+Version 1.00a
+
+Sun Apr 10 17:47:39 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* added ARexx port
+
+Tue Mar 22 18:54:31 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* added short arguments to ch_nfsc
+	* added some more write flags (in actions.c), fixed error code
+	* relabel now changes both volumenames
+
+Sat Mar 19 15:53:12 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* activated IOCONTROL for non-debug version
+
+Thu Mar 10 01:31:02 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* fixed timer problem when mount failed
+
+Wed Mar  9 22:32:14 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* re-activated "invalid arguments" requester
+	* better behavious on startup failure now
+	* fixed wrong assertion if too early startup failure
+	* made ParseArgs a function
+
+Sun Mar  6 15:04:35 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* fixed memory leaks in Lock(), dir_DelEntry(), CBuildFullName(), 
+	  do_act_Parent()
+
+Sun Feb 27 21:12:03 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* fn_AM2UN: fixed subtle/serious copying bug
+	* fn_PathUnify: fixed serious bug where Outputparameter was used as 
+	  InputParameter 
+	* added file type check to READ_LINK
+	* fixed delete/write mapping of SetProtection
+
+Sat Feb 26 15:21:33 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* fixed timer problem with die (timer packet was replied)
+
+Fri Feb 25 18:42:14 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* replaced fprintf with APrintReq
+	* added restore of pkt arguments (FCOMP problem)
+	* removed old stuff
+	* minor cleanups
+
+Thu Feb 24 12:59:58 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* added action RENAME_DISK
+	* new action GET_ATTRIBUTES
+	* dummy EXAMINE_ALL
+	* make Examine() handle NULL lock
+
+Tue Feb 22 14:57:33 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* major changes to fn_PathUnify
+
+Fri Feb 18 14:04:00 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* mapped Amiga "nobody"/"nogroup" to unix "-1"
+
+	* remove WRITEBUFFERLIMIT argument
+	* added BUFFERS argument
+	* added action MORE_CACHE and adjusting buffers now
+
+Sun Feb 13 20:35:26 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* using fthash now
+	* using common mbuf functions now
+
+Thu Feb 10 23:27:47 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* main: die support, CTRL-C handling added
+
+Thu Feb  3 21:48:53 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* some minor memory enhancements
+
+	* added serial/parallel debug options
+
+Wed Feb  2 15:30:21 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* action CURRENT_VOLUME supported now
+
+	* find_update: make error message if open on non-file ffs like
+
+Sat Jan 29 15:04:58 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* added RPCTimeout parameter
+
+	* Fixed bug when non-root lock and absolute path was given (assign bug)
+	
+	* fn_PathUnify: fixed path parsing bug 
+	  (".../dir1/../dir2" became "...//dir2")
+        * improved path parsing
+	
+	* assign bug should be fixed now
+
+Fri Jan 28 00:23:59 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* hopefully fixed assign bug now
+
+Thu Jan 27 17:36:20 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* added hash value for faster dcache name lookup
+
+	* added context sensitive error conversion routine
+
+	* APrintReq() now uses cli_CommandName for title
+
+	* main(): Added explicit stack check on startup
+
+Sat Jan 15 15:24:46 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* Read(): avoid extra nfs call on EOF
+
+	* Lock(): fixed error reporting bug ("not found" was reported 
+	  as "out of memory")
+
+Thu Jan 13 01:51:50 1994  GNU Emacs Lover  (alph@alph3000)
+
+	* return volumename on root lock
+
+Sat Jan  8 17:50:31 1994  GNU Emacs Lover  (alph@alph3000.home.de)
+
+	* fixed serious memory bug in FIND_OUTPUT if second open on exclusive
+	  write is tried
+
+	* fixed path parsing bug (a leeding "/" is now always found and
+	  considered illegal)
+	* fixed path parsing bug regarding "..", "/.." is now
+	  identical to amiga notation "//"
+
+	* improved detection of illegal FIB contents presented to ExNext()

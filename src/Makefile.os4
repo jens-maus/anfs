@@ -1,0 +1,112 @@
+#/***************************************************************************
+#
+# aNFS (ch_nfs) - Amiga NFS client
+# Copyright (C) 1993-1994 Carsten Heyl
+# Copyright (C) 2008      aNFS Open Source Team
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+# aNFS OpenSource project:  http://sourceforge.net/projects/anfs/
+#
+# $Id$
+#
+#***************************************************************************/
+
+# Programs
+CC        = ppc-amigaos-gcc
+STRIP     = ppc-amigaos-strip
+OBJDUMP   = ppc-amigaos-objdump
+RM        = rm -f
+RMDIR     = rm -rf
+MKDIR     = mkdir
+CHMOD     = chmod
+FLEX      = flex
+FC        = flexcat
+
+# Directories
+PREFIX    = .
+OBJDIR    = .obj_os4
+BINDIR    = bin_os4
+
+# Compiler/Linker flags
+CPU      = -mcpu=604e
+CPUFLAGS = -mmultiple -Wa,-mregnames
+CDEFS    = -D__CST_VERDATE=\"`date +%d.%m.%Y`\" \
+           -D__CST_VERDAYS="`expr \`date +%s\` / 86400 - 2922`"
+WARN     = -W -Wall
+OPTFLAGS = -O3 -fomit-frame-pointer -funroll-loops
+DEBUG    = -DDEBUG #-g3 -O0
+REDEFINE = -DCoerceMethod=ICoerceMethod -DDoMethod=IDoMethod \
+           -DDoSuperMethod=IDoSuperMethod -DDoSuperMethodA=IDoSuperMethodA
+CFLAGS   = -pipe -I. -I../include $(CPU) $(CPUFLAGS) $(WARN) $(OPTFLAGS) \
+           $(DEBUG) -D__USE_INLINE__ $(REDEFINE) -c
+LDFLAGS  = $(CPU)
+LDLIBS   = -ldebug
+
+# CPU and DEBUG can be defined outside, defaults to above
+# using e.g. "make DEBUG= CPU=-mcpu=603e" produces optimized non-debug PPC-603e version
+#
+# OPTFLAGS are disabled by DEBUG normally!
+#
+# ignored warnings are:
+# none - because we want to compile with -Wall all the time
+
+TARGET = $(BINDIR)/ch_nfsc
+
+OBJS = $(OBJDIR)/actions.o    \
+       $(OBJDIR)/attr.o       \
+       $(OBJDIR)/cred.o       \
+       $(OBJDIR)/dirs.o       \
+       $(OBJDIR)/examine.o    \
+       $(OBJDIR)/fh.o
+
+#
+all: $(BINDIR) $(OBJDIR) $(TARGET)
+
+# make the object directories
+$(OBJDIR):
+	@printf '\033[33mGenerating $@ directory\033[0m\n'
+	@$(MKDIR) $(OBJDIR)
+
+# make the binary directories
+$(BINDIR):
+	@printf '\033[33mGenerating $@ directory\033[0m\n'
+	@$(MKDIR) $(BINDIR)
+
+#
+
+$(OBJDIR)/%.o: %.c
+	@printf '\033[32mCompiling $<\033[0m\n'
+	@$(CC) $(CFLAGS) $< -o $@
+
+#
+
+$(TARGET): $(M68KSTUBS) $(OBJS)
+	@printf '\033[32mLinking \033[1m$@\033[0m\n'
+	@$(CC) $(LDFLAGS) -o $@.debug $(OBJS) $(LDLIBS)
+	@$(STRIP) -o $@ $@.debug
+
+#
+
+.PHONY: clean
+clean:
+	-$(RM) $(TARGET) $(TARGET).debug $(OBJS) $(M68KSTUBS)
+
+.PHONY: distclean
+distclean: clean
+	-$(RMDIR) $(OBJDIR)
+	-$(RMDIR) $(BINDIR)
+
+#

@@ -1,0 +1,74 @@
+/***************************************************************************
+
+ aNFS (ch_nfs) - Amiga NFS client
+ Copyright (C) 1993-1994 Carsten Heyl
+ Copyright (C) 2008      aNFS Open Source Team
+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+ aNFS OpenSource project:  http://sourceforge.net/projects/anfs/
+
+ $Id$
+
+***************************************************************************/
+
+- add MOUNTNAME to AREXX-PortNAME so that hanging clients don't effect
+  ch_nfsctl
+
+- add soft link entry in cache?
+- think about (fast !) Attr Cache update on write/end(?)
+- remove UPath parameter to BuildFullName ? (only "use": ReadLink) 
+
+- fix readdir memory problem (memory is freed on next call to readdir only)
+- hash file id's ?
+- test if MODE_NEWFILE opened files can be read after some writing
+- add read/write flag to efh
+- think about timeout value for read buf
+- currently no rename possible if locks are open, FFS does allow that
+- FIX device/volume stuff
+- fix all FIXME's
+- support multiple groups
+- try async reads
+- fix leak where long file names got through (shortened)
+- fix error message when accessing link to too long file
+	[1.110] opus:long-names>type l1
+	l1: object already exists
+- fix file name cutting to preserve extension
+- open filename with too long name if prefix does match
+
+done in 0.007:
+- check/support a/b/c/<soft-link>/d/e/f (-> guru book p. 475)
+- RENAME_DISK must change internal volumename too (remove internal ?)
+
+done in 0.005:
+- fix newlist problem
+- fix FComp problem
+- use MakeDosEntry() instead of allocating device structure
+
+
+done in 0.003:
+- add timer sync 
+- make flush action flush caches
+
+- it's possible to do a cd ".." and entering a directory ".."
+	fixed in 0.002
+- add write cache?
+	done in 0.002
+- fix examine bug for root directory
+	fixed in 0.002
+- locate recursive directory bug
+	fixed in 0.002
+- allow "al:" and "al" as "al"
+	fixed in 0.002
