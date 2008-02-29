@@ -38,7 +38,7 @@
 //#include <proto/aulib.h>
 #include <proto/utility.h>
 
-#include "chdebug.h"
+#include "Debug.h"
 
 ULONG
 NFSMode2Protection(unsigned int mode)
@@ -84,12 +84,32 @@ default:
 
 void timeval2DateStamp(nfstime *tv, struct DateStamp *ds)
 {
-    aunet_timeval2DateStamp((struct timeval *)tv, ds);
+  LONG seconds;
+
+  ENTER();
+
+  seconds = tv->seconds + (tv->useconds / 1000000);
+
+  ds->ds_Days   = seconds / 86400;       // calculate the days since 1.1.1978
+  ds->ds_Minute = (seconds % 86400) / 60;
+  ds->ds_Tick   = (tv->seconds % 60) * TICKS_PER_SECOND + (tv->useconds / 20000);
+
+  LEAVE();
 }
 
 void DateStamp2timeval(struct DateStamp *ds, nfstime *tv)
 {
-    aunet_DateStamp2timeval(ds, (struct timeval *) tv);
+  ENTER();
+
+  // check if the ptrs are set or not.
+  if(ds != NULL && tv != NULL)
+  {
+    // creates wrong timevals from DateStamps with year >= 2114 ...
+    tv->seconds = (ds->ds_Days * 24 * 60 + ds->ds_Minute) * 60 + ds->ds_Tick / TICKS_PER_SECOND;
+    tv->useconds = (ds->ds_Tick % TICKS_PER_SECOND) * 1000000 / TICKS_PER_SECOND;
+  }
+
+  LEAVE();
 }
 
 void FAttr2FIB(fattr *a, UBYTE *Name, LONG NameLen, LONG MaxFileNameLen, FIB *fib)
@@ -97,8 +117,9 @@ void FAttr2FIB(fattr *a, UBYTE *Name, LONG NameLen, LONG MaxFileNameLen, FIB *fi
     fib->fib_DiskKey = a->fileid;
 
     fib->fib_Protection = NFSMode2Protection(a->mode);
-    fib->fib_EntryType = NFSType2EntryType(a->type);
-    fib->fib_DirEntryType = fib->fib_EntryType;
+    //fib->fib_EntryType = NFSType2EntryType(a->type);
+    #warning "fib_EntryType not required?"
+    fib->fib_DirEntryType = NFSType2EntryType(a->type);
 
     if(NameLen == -1)
 	NameLen = strlen(Name);
@@ -124,14 +145,15 @@ void FAttr2FIB(fattr *a, UBYTE *Name, LONG NameLen, LONG MaxFileNameLen, FIB *fi
 void
 PrintFIB(FIB *fib)
 {
-    AKDEBUG((0,"\t%08lx/%08lx/%08lx/%08lx/%08lx/%08lx\n",
+    D(DBF_ALWAYS, "\t%08lx/%08lx/%08lx/%08lx/%08lx/%08lx",
 	     fib->fib_DiskKey, fib->fib_DirEntryType,
-	     fib->fib_Protection, fib->fib_EntryType,
-	     fib->fib_Size, fib->fib_NumBlocks));
-    AKDEBUG((0,"\t%04lx/%04lx/%s\n",
+	     fib->fib_Protection, /*fib->fib_EntryType*/0,
+	     fib->fib_Size, fib->fib_NumBlocks);
+
+    D(DBF_ALWAYS, "\t%04lx/%04lx/%s",
 	     (ULONG) fib->fib_OwnerUID,
 	     (ULONG) fib->fib_OwnerGID,
-	     &fib->fib_FileName[1]));
+	     &fib->fib_FileName[1]);
 }
 #endif
 
@@ -142,9 +164,9 @@ do_act_EXAMINE_OBJECT(Global_T *g, ELOCK *efl, FIB *fib)
     LONG Res1 = DOSFALSE;
     LONG Res2 = g->g_Res2;
 
-    if(efl)
-    {
-	AKDEBUG((0,"\tname = \"%s\"\n", efl->efl_FullName));
+  if(efl)
+  {
+    D(DBF_ALWAYS, "\tname = \"%s\"", efl->efl_FullName);
 
 	/* get entry from cache if possible, else do nfs_Lookup */
 	ACEnt = c_GetAttr(g,
@@ -164,9 +186,9 @@ do_act_EXAMINE_OBJECT(Global_T *g, ELOCK *efl, FIB *fib)
 		FAttr2FIB(&ACEnt->ace_FAttr, 
 			  efl->efl_Name, efl->efl_NameLen, g->g_MaxFileNameLen, fib);
 	    }
-#if 0
-	    AKDEBUG((0,"\tDirEntryType = %ld\n", fib->fib_DirEntryType));
-#endif
+
+	    D(DBF_ALWAYS, "\tDirEntryType = %ld", fib->fib_DirEntryType);
+
 	    Res1 = DOSTRUE;
 	}
 	else
@@ -237,7 +259,7 @@ LookupAttr(Global_T *g,
 
     if(!Name)
     {
-	FIXME(("LookupAttr: Internal problem: Name = NULL\n"));
+	E(DBF_ALWAYS, "LookupAttr: Internal problem: Name = NULL");
 	
 	*Res2 = ERROR_NO_FREE_STORE;
 
@@ -249,14 +271,14 @@ LookupAttr(Global_T *g,
     if(ACEnt)
 	return &ACEnt->ace_FAttr;
 
-    AKDEBUG((0,"\tLookupAttr: attr cache, no entry\n"));
+    D(DBF_ALWAYS, "\tLookupAttr: attr cache, no entry");
     
     /* 2. need to lookup */
 
     DCEnt = dc_DCELookupFromFileId(g, efl->efl_Lock.fl_Key);
-    if(!DCEnt)
-    {
-	AKDEBUG((0,"\tLookupAttr: dce cache, no entry\n"));
+  if(!DCEnt)
+  {
+    D(DBF_ALWAYS, "\tLookupAttr: dce cache, no entry");
 	DCEnt = GetDirEntry(g,
 			    NULL,
 			    efl->efl_Lock.fl_Key,
@@ -268,7 +290,7 @@ LookupAttr(Global_T *g,
     }
     else
     {
-	AKDEBUG((0,"\tLookupAttr: dce cache ok\n"));
+	D(DBF_ALWAYS,"\tLookupAttr: dce cache ok");
     }
     if(!NEnt)
     {
@@ -296,12 +318,11 @@ act_EXAMINE_NEXT(Global_T *g, DOSPKT *pkt)
     efl = lock_Lookup(g, fl);
     if(efl)
     {
-#if 1
-	AKDEBUG((0,"Key = 0x%08lx, DiskKey = 0x%08lx, Name = %s\n",
+	D(DBF_ALWAYS,"Key = 0x%08lx, DiskKey = 0x%08lx, Name = %s",
 		 efl->efl_Lock.fl_Key,
 		 fib->fib_DiskKey,
-		 fib->fib_FileName+1));
-#endif
+		 fib->fib_FileName+1);
+
 	edh = dir_LookupFromKeyAndCookieAndCBSTR(g, 
 						 efl->efl_Lock.fl_Key,
 						 fib->fib_DiskKey,
@@ -331,15 +352,14 @@ act_EXAMINE_NEXT(Global_T *g, DOSPKT *pkt)
 			     NullCookie,
 			     fib->fib_FileName,
 			     g->g_MaxFileNameLen);
-	    AKDEBUG((0,"\tassuming first call to ExNext(), new handle 0x%08lx\n",
-		     edh));
+	    D(DBF_ALWAYS,"\tassuming first call to ExNext(), new handle 0x%08lx", edh);
 	    if(!edh)
 		return SetRes(g, DOSFALSE, ERROR_NO_FREE_STORE);
 	    dir_Insert(g, edh);
 	}
 	else
 	{
-	    AKDEBUG((0,"\tfound old dir handle: 0x%08lx\n", edh));
+	    D(DBF_ALWAYS,"\tfound old dir handle: 0x%08lx", edh);
 	}
 
 	if(IsSameFH(&efl->efl_NFSFh, &edh->edh_NFSDirFh))
@@ -370,7 +390,8 @@ act_EXAMINE_NEXT(Global_T *g, DOSPKT *pkt)
 		
 		if(Entries)
 		{
-		    chassert(edh);
+		    ASSERT(edh);
+
 		    while(Entries && ((strcmp(Entries->name , ".") == 0) ||
 				      (strcmp(Entries->name , "..") == 0) ||
 				      (strlen(Entries->name) > g->g_MaxFileNameLen)))
@@ -407,7 +428,8 @@ act_EXAMINE_NEXT(Global_T *g, DOSPKT *pkt)
 	    }
 
 	    Entries = dir_RemHeadEntry(edh);
-	    chassert(Entries);
+
+	    ASSERT(Entries);
 
 	    /* FIXME: could check for fileid identity ? */
 	    Attr = LookupAttr(g, efl, 
@@ -440,24 +462,22 @@ act_EXAMINE_NEXT(Global_T *g, DOSPKT *pkt)
 	} /* IsSameFH */
 	else
 	{
-	    AKDEBUG((1,"\tdifferent file handles to examine next!\n"));
+	    E(DBF_ALWAYS,"\tdifferent file handles to examine next!");
 	    Res2 = ERROR_OBJECT_WRONG_TYPE;
 	}
     } /* if (efl) */
     else
     {
-	AKDEBUG((1,"\tillegal lock: 0x%08lx\n", fl));
+	E(DBF_ALWAYS,"\tillegal lock: 0x%08lx\n", fl);
 	SetRes(g, DOSFALSE, ERROR_INVALID_LOCK);
     }
 
-#if 1
 #ifdef DEBUG
     if(Res1 != DOSFALSE)
     {
-	AKDEBUG((0,"Key = 0x%08lx\n", efl->efl_Lock.fl_Key));
+	D(DBF_ALWAYS,"Key = 0x%08lx\n", efl->efl_Lock.fl_Key);
 	PrintFIB(fib);
     }
-#endif
 #endif
 
     return SetRes(g, Res1, Res2);
@@ -494,7 +514,7 @@ act_GET_ATTRIBUTES(Global_T *g, DOSPKT *pkt)
 	struct DateStamp *ds;
 	LONG NumProcessed = 0;
 	
-	chassert(ACEnt);
+	ASSERT(ACEnt);
 	attr = &ACEnt->ace_FAttr;
 	    
 	TagListState = TagList;
@@ -546,9 +566,11 @@ act_GET_ATTRIBUTES(Global_T *g, DOSPKT *pkt)
     return SetRes(g, Res1, Res2);
 }
 
+/*
 typedef LONG __asm (*MatchFunc)(register __a0 struct Hook *hook,
 				register __a1 struct ExAllData *ead,
 				register __a2 ULONG *ptype);
+*/
 
 LONG
 GetNextEntries(Global_T *g, EDH *edh, LONG *Res2)
@@ -581,7 +603,7 @@ GetNextEntries(Global_T *g, EDH *edh, LONG *Res2)
     
     if(Entries)
     {
-	chassert(edh);
+	ASSERT(edh);
 	while(Entries && ((strcmp(Entries->name , ".") == 0) ||
 			  (strcmp(Entries->name , "..") == 0) ||
 			  (strlen(Entries->name) > g->g_MaxFileNameLen)))
@@ -735,8 +757,7 @@ act_EXAMINE_ALL(Global_T *g, DOSPKT *pkt)
 	    {
 		dir_Insert(g, edh);
 		eac->eac_LastKey = (ULONG) edh;
-		AKDEBUG((0,"new LastKey == 0x%08lx\n",
-			 eac->eac_LastKey));
+		D(DBF_ALWAYS,"new LastKey == 0x%08lx", eac->eac_LastKey);
 	    }
 	    else
 		Res2 = ERROR_NO_FREE_STORE;
@@ -746,8 +767,8 @@ act_EXAMINE_ALL(Global_T *g, DOSPKT *pkt)
 	    edh = dir_LookupFromAddress(g, (void *) eac->eac_LastKey);
 	    if(!edh) /* illegal call, just return NO_MORE_ENTRIES */
 	    {
-		AKDEBUG((1,"illegal call to ExAll(), LastKey == 0x%08lx\n",
-			 eac->eac_LastKey));
+		E(DBF_ALWAYS,"illegal call to ExAll(), LastKey == 0x%08lx",
+			 eac->eac_LastKey);
 		Res2 = ERROR_NO_MORE_ENTRIES;
 	    }
 	}
@@ -766,7 +787,7 @@ act_EXAMINE_ALL(Global_T *g, DOSPKT *pkt)
 		{
 		    if(!GetNextEntries(g, edh, &Res2))
 		    {
-			AKDEBUG((0,"\tGetNextEntries is FALSE\n"));
+			D(DBF_ALWAYS,"\tGetNextEntries is FALSE");
 			Res1 = DOSFALSE;
 			doContinue = 0;
 		    }
@@ -821,8 +842,8 @@ act_EXAMINE_ALL(Global_T *g, DOSPKT *pkt)
 			{
 			    /* failure, Res2 is set, cleanup and exit */
 
-			    AKDEBUG((0,"\tAttr == NULL, Res2 = %ld\n",
-				     Res2));
+			    D(DBF_ALWAYS,"\tAttr == NULL, Res2 = %ld",
+				     Res2);
 			    Res1 = DOSFALSE;
 			    edh = dir_Remove(g, edh);
 			    dir_Delete(&edh);
@@ -857,7 +878,7 @@ act_EXAMINE_ALL(Global_T *g, DOSPKT *pkt)
     } /* if (efl) */
     else
     {
-	AKDEBUG((1,"\tillegal lock: 0x%08lx\n", fl));
+	E(DBF_ALWAYS,"\tillegal lock: 0x%08lx", fl);
 	SetRes(g, DOSFALSE, ERROR_INVALID_LOCK);
     }
 

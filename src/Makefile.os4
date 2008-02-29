@@ -50,10 +50,10 @@ OPTFLAGS = -O3 -fomit-frame-pointer -funroll-loops
 DEBUG    = -DDEBUG #-g3 -O0
 REDEFINE = -DCoerceMethod=ICoerceMethod -DDoMethod=IDoMethod \
            -DDoSuperMethod=IDoSuperMethod -DDoSuperMethodA=IDoSuperMethodA
-CFLAGS   = -pipe -I. -I../include $(CPU) $(CPUFLAGS) $(WARN) $(OPTFLAGS) \
+CFLAGS   = -I. -I../include $(CPU) $(CPUFLAGS) $(WARN) $(OPTFLAGS) \
            $(DEBUG) -D__USE_INLINE__ $(REDEFINE) -c
 LDFLAGS  = $(CPU)
-LDLIBS   = -ldebug
+LDLIBS   =
 
 # CPU and DEBUG can be defined outside, defaults to above
 # using e.g. "make DEBUG= CPU=-mcpu=603e" produces optimized non-debug PPC-603e version
@@ -70,7 +70,11 @@ OBJS = $(OBJDIR)/actions.o    \
        $(OBJDIR)/cred.o       \
        $(OBJDIR)/dirs.o       \
        $(OBJDIR)/examine.o    \
-       $(OBJDIR)/fh.o
+       $(OBJDIR)/fh.o         \
+       $(OBJDIR)/filesys.o    \
+       $(OBJDIR)/lock.o       \
+       $(OBJDIR)/object.o     \
+       $(OBJDIR)/Debug.o
 
 #
 all: $(BINDIR) $(OBJDIR) $(TARGET)
