@@ -34,7 +34,7 @@
 #include "protos.h"
 #include "inline.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 /* FIXME: make module containing single list functions !*/
 
@@ -74,7 +74,7 @@ EDH *dir_Create(const Global_T *g,
 
 void dir_Insert(Global_T *g, EDH *edh)
 {
-    chassert(edh);
+    ASSERT(edh);
 
     edh->edh_Next = g->g_DH;
     g->g_DH = edh;

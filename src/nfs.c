@@ -34,7 +34,7 @@
 #include "protos.h"
 #include "inline.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 #define CLIENTERROR(cl) 	*Res2 = CLIENT2IoErr(cl);
 
@@ -44,10 +44,10 @@ static void fhdebug(const nfs_fh *fh)
     LONG *lp;
 
     lp = (LONG *) fh;
-    AKDEBUG((0,"\t\t(0x%08lx 0x%08lx 0x%08lx 0x%08lx\n",
-	     lp[0], lp[1], lp[2], lp[3]));
-    AKDEBUG((0,"\t\t 0x%08lx 0x%08lx 0x%08lx 0x%08lx)\n",
-	     lp[4], lp[5], lp[6], lp[7]));
+    D(DBF_ALWAYS,"\t\t(0x%08lx 0x%08lx 0x%08lx 0x%08lx",
+	     lp[0], lp[1], lp[2], lp[3]);
+    D(DBF_ALWAYS,"\t\t 0x%08lx 0x%08lx 0x%08lx 0x%08lx)",
+	     lp[4], lp[5], lp[6], lp[7]);
 }
 
 #define FHDEBUG(fh) fhdebug(fh)
@@ -61,7 +61,7 @@ fattr *nfs_GetAttr(CLIENT *clnt, nfs_fh *file, LONG *Res2)
     attrstat *res;
 
 #ifdef DEBUG
-    AKDEBUG((0,"\tnfs_GetAttr()\n"));
+    D(DBF_ALWAYS,"\tnfs_GetAttr()");
     FHDEBUG(file);
 #endif
 
@@ -73,7 +73,7 @@ fattr *nfs_GetAttr(CLIENT *clnt, nfs_fh *file, LONG *Res2)
     }
     if(res->status != NFS_OK)
     {
-	AKDEBUG((1, "getattr failed:%s\n", StrNFSErr(res->status)));
+	W(DBF_ALWAYS, "getattr failed:%s", StrNFSErr(res->status));
 	*Res2 = NFSErr2IoErrCont(res->status, 'r');
 	return NULL;
     }
@@ -118,7 +118,7 @@ fattr *nfs_SetAttr(CLIENT *clnt, nfs_fh *filefh,
     }
     if(res->status != NFS_OK)
     {
-	AKDEBUG((1, "nfs_SetAttr failed: %s\n", StrNFSErr(res->status)));
+	W(DBF_ALWAYS, "nfs_SetAttr failed: %s", StrNFSErr(res->status));
 
 	*Res2 = NFSErr2IoErrCont(res->status, 'w');
 	return NULL;
@@ -196,7 +196,7 @@ diropokres *nfs_ILookup(CLIENT *clnt,
     dop.name = (UBYTE *) name; /* just trust */
 
 #ifdef DEBUG
-    AKDEBUG((0,"\tnfs_Lookup(\"%s\")\n", name));
+    D(DBF_ALWAYS,"\tnfs_Lookup(\"%s\")", name);
     FHDEBUG(dirfh);
 #endif
 
@@ -214,7 +214,7 @@ diropokres *nfs_ILookup(CLIENT *clnt,
     }
     if(res->status != NFS_OK)
     {
-	AKDEBUG((1, "nfs_lookup failed: %s\n", StrNFSErr(res->status)));
+	W(DBF_ALWAYS, "nfs_lookup failed: %s", StrNFSErr(res->status));
 
 	*Res2 = NFSErr2IoErrCont(res->status, 'r');
 	return NULL;
@@ -243,7 +243,7 @@ nfspath nfs_ReadLink(CLIENT *clnt, nfs_fh *file, LONG *Res2)
     }
     if(res->status != NFS_OK)
     {
-	AKDEBUG((1,"readlink failed:%s\n", StrNFSErr(res->status)));
+	W(DBF_ALWAYS,"readlink failed:%s", StrNFSErr(res->status));
 	*Res2 = NFSErr2IoErrCont(res->status, 'r');
 	return NULL;
     }
@@ -259,8 +259,7 @@ LONG nfs_Read(CLIENT *clnt, nfs_fh *fh, LONG offset, UBYTE *Buf,
     readres *res;
 
 #ifdef DEBUG
-    AKDEBUG((0, "\tnfs_Read(0x%08lx (offs), 0x%08lx (cnt) ... )\n",
-	     offset, count));
+    D(DBF_ALWAYS, "\tnfs_Read(0x%08lx (offs), 0x%08lx (cnt) ... )", offset, count);
     FHDEBUG(fh);
 #endif
 
@@ -276,7 +275,7 @@ LONG nfs_Read(CLIENT *clnt, nfs_fh *fh, LONG offset, UBYTE *Buf,
     }
     if(res->status != NFS_OK)
     {
-	AKDEBUG((1, "read failed:%s\n", StrNFSErr(res->status)));
+	W(DBF_ALWAYS, "read failed:%s", StrNFSErr(res->status));
 	*Res2 = NFSErr2IoErrCont(res->status, 'r');
 	return -1;
     }
@@ -286,7 +285,7 @@ LONG nfs_Read(CLIENT *clnt, nfs_fh *fh, LONG offset, UBYTE *Buf,
 
     *FileLen = res->readres_u.reply.attributes.size;
 
-    AKDEBUG((0,"\t\t-> 0x%08lx (size), 0x%08lx (len read)\n", *FileLen, Len));
+    D(DBF_ALWAYS,"\t\t-> 0x%08lx (size), 0x%08lx (len read)", *FileLen, Len);
     return Len;
 }
 #endif
@@ -303,8 +302,7 @@ nfs_MRead(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
     readres *res;
 
 #ifdef DEBUG
-    AKDEBUG((0, "\tnfs_MRead(0x%08lx (offs), 0x%08lx (cnt) ... )\n",
-	     offset, count));
+    D(DBF_ALWAYS, "\tnfs_MRead(0x%08lx (offs), 0x%08lx (cnt) ... )", offset, count);
     FHDEBUG(fh);
 #endif
 
@@ -327,7 +325,7 @@ nfs_MRead(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
 	}
 	if(res->status != NFS_OK)
 	{
-	    AKDEBUG((1, "(m)read failed:%s\n", StrNFSErr(res->status)));
+	    W(DBF_ALWAYS, "(m)read failed:%s", StrNFSErr(res->status));
 	    *Res2 = NFSErr2IoErrCont(res->status, 'r');
 	    return -1;
 	}
@@ -351,8 +349,7 @@ nfs_MRead(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
 
     *FileLen = res->readres_u.reply.attributes.size;
 
-    AKDEBUG((0,"\t\t-> 0x%08lx (size), 0x%08lx (len read)\n",
-	     *FileLen, TotLen));
+    D(DBF_ALWAYS,"\t\t-> 0x%08lx (size), 0x%08lx (len read)", *FileLen, TotLen);
     return TotLen;
 }
 
@@ -395,8 +392,7 @@ nfs_MARead(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
     LONG FileLen = 0;
 
 #ifdef DEBUG
-    AKDEBUG((0, "\tnfs_MRead(0x%08lx (offs), 0x%08lx (cnt) ... )\n",
-	     offset, count));
+    D(DBF_ALWAYS, "\tnfs_MRead(0x%08lx (offs), 0x%08lx (cnt) ... )", offset, count);
     FHDEBUG(fh);
 #endif
 
@@ -432,7 +428,7 @@ nfs_MARead(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
 		if(eof || (rh->rargs.offset <= UpperOffs))
 		{
 		    clnt_abort(clnt);
-		    AKDEBUG((1, "(m)read failed:%s\n", StrNFSErr(res->status)));
+		    W(DBF_ALWAYS, "(m)read failed:%s", StrNFSErr(res->status));
 		    *Res2 = NFSErr2IoErrCont(res->status, 'r');
 		    return -1;
 		}
@@ -447,7 +443,7 @@ nfs_MARead(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
 			{
 			    /* incomplete read and eof already raised => error */
 			    clnt_abort(clnt);
-			    AKDEBUG((1, "(m)read failed, incomplete read\n"));
+			    W(DBF_ALWAYS, "(m)read failed, incomplete read");
 			
 			    *Res2 = ERROR_OBJECT_NOT_FOUND;
 			    return -1;
@@ -517,8 +513,8 @@ nfs_MARead(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
     }
     *FileLenP = FileLen;
 
-    AKDEBUG((0,"\t\t-> 0x%08lx (size), 0x%08lx (len read)\n",
-	     FileLen, TotLen));
+    D(DBF_ALWAYS,"\t\t-> 0x%08lx (size), 0x%08lx (len read)", FileLen, TotLen);
+
     return TotLen;
 }
 
@@ -543,7 +539,7 @@ LONG nfs_Write(CLIENT *clnt, nfs_fh *fh, LONG offset, UBYTE *Buf,
     }
     if(res->status != NFS_OK)
     {
-	AKDEBUG((1, "write failed:%s\n", StrNFSErr(res->status)));
+	W(DBF_ALWAYS, "write failed:%s", StrNFSErr(res->status));
 	*Res2 = NFSErr2IoErrCont(res->status, 'w');
 	return -1;
     }
@@ -564,8 +560,7 @@ nfs_MWrite(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
     attrstat *res;
 
 #ifdef DEBUG
-    AKDEBUG((0, "\tnfs_MWrite(0x%08lx (offs), 0x%08lx (cnt) ... )\n",
-	     offset, count));
+    D(DBF_ALWAYS, "\tnfs_MWrite(0x%08lx (offs), 0x%08lx (cnt) ... )", offset, count);
     FHDEBUG(fh);
 #endif
 
@@ -590,7 +585,7 @@ nfs_MWrite(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
 	}
 	if(res->status != NFS_OK)
 	{
-	    AKDEBUG((1, "(m)write failed:%s\n", StrNFSErr(res->status)));
+	    W(DBF_ALWAYS, "(m)write failed:%s", StrNFSErr(res->status));
 	    *Res2 = NFSErr2IoErrCont(res->status, 'w');
 	    return -1;
 	}
@@ -622,8 +617,7 @@ nfs_MAWrite(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
     LONG FileLen = 0;
     
 #ifdef DEBUG
-    AKDEBUG((0, "\tnfs_SMWrite(0x%08lx (offs), 0x%08lx (cnt) ... )\n",
-	     offset, count));
+    D(DBF_ALWAYS, "\tnfs_SMWrite(0x%08lx (offs), 0x%08lx (cnt) ... )", offset, count);
     FHDEBUG(fh);
 #endif
 
@@ -637,7 +631,7 @@ nfs_MAWrite(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
 	{
 	    attrstat *res;
 	    
-	    AKDEBUG((0, "\twait now\n"));
+	    D(DBF_ALWAYS, "\twait now");
 	    res = nfsproc_wait_write_2(clnt);
 	    if(res == NULL)
 	    {
@@ -650,8 +644,7 @@ nfs_MAWrite(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
 	    {
 		clnt_abort(clnt);
 
-		AKDEBUG((1, "send_(m)write failed:%s\n",
-			 StrNFSErr(res->status)));
+		W(DBF_ALWAYS, "send_(m)write failed:%s", StrNFSErr(res->status));
 		*Res2 = NFSErr2IoErrCont(res->status, 'w');
 		return -1;
 	    }
@@ -678,8 +671,7 @@ nfs_MAWrite(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
 		    {
 			clnt_abort(clnt);
 
-			AKDEBUG((1, "send_(m)write failed:%s\n",
-				 StrNFSErr(res->status)));
+			W(DBF_ALWAYS, "send_(m)write failed:%s", StrNFSErr(res->status));
 			*Res2 = NFSErr2IoErrCont(res->status, 'w');
 			return -1;
 		    }
@@ -702,7 +694,7 @@ nfs_MAWrite(NFSGlobal_T *ng, CLIENT *clnt, nfs_fh *fh, ULONG offset, UBYTE *Buf,
 	    wargs.data.data_len = Len;
 	    wargs.data.data_val = Buf;
 
-	    AKDEBUG((0, "\tsend now\n"));
+	    D(DBF_ALWAYS, "\tsend now");
 	    ok = nfsproc_send_writesb_2(&wargs, clnt);
 	    if(!ok)
 	    {
@@ -754,7 +746,7 @@ diropokres
     }
     if(dres->status != NFS_OK)
     {
-	AKDEBUG((1, "nfs_create failed: %s\n", StrNFSErr(dres->status)));
+	W(DBF_ALWAYS, "nfs_create failed: %s", StrNFSErr(dres->status));
 
 	*Res2 = NFSErr2IoErrCont(dres->status, 'c');
 	return NULL;
@@ -774,7 +766,7 @@ nfs_Remove(CLIENT *clnt, nfs_fh *dirfh, UBYTE *name, LONG *Res2)
     dop.name = name;
 
 #ifdef DEBUG
-    AKDEBUG((0,"\tnfs_Remove(\"%s\" )\n", name));
+    D(DBF_ALWAYS,"\tnfs_Remove(\"%s\" )", name);
     FHDEBUG(dirfh);
 #endif
 
@@ -787,7 +779,7 @@ nfs_Remove(CLIENT *clnt, nfs_fh *dirfh, UBYTE *name, LONG *Res2)
 
     if(*res != NFS_OK)
     {
-	AKDEBUG((1, "nfs_remove failed: %s\n", StrNFSErr(*res)));
+	W(DBF_ALWAYS, "nfs_remove failed: %s", StrNFSErr(*res));
 
 	*Res2 = NFSErr2IoErrCont(*res, 'w');
 	return 0;
@@ -810,7 +802,7 @@ nfs_Rename(CLIENT *clnt,
     rena.to.name = name2;
 
 #ifdef DEBUG
-    AKDEBUG((0,"\tnfs_Rename(\"%s\",\"%s\"\n", name1, name2));
+    D(DBF_ALWAYS,"\tnfs_Rename(\"%s\",\"%s\"", name1, name2);
     FHDEBUG(dirfh1);
     FHDEBUG(dirfh2);
 #endif
@@ -824,7 +816,7 @@ nfs_Rename(CLIENT *clnt,
 
     if(*res != NFS_OK)
     {
-	AKDEBUG((1, "nfs_rename failed: %s\n", StrNFSErr(*res)));
+	W(DBF_ALWAYS, "nfs_rename failed: %s", StrNFSErr(*res));
 
 	*Res2 = NFSErr2IoErrCont(*res, 'w');
 	return 0;
@@ -854,7 +846,7 @@ nfs_Link(CLIENT *clnt,
     }
     if(*res != NFS_OK)
     {
-	AKDEBUG((1, "nfs_link failed: %s\n", StrNFSErr(*res)));
+	W(DBF_ALWAYS, "nfs_link failed: %s", StrNFSErr(*res));
 
 	*Res2 = NFSErr2IoErrCont(*res, 'w');
 	return 0;
@@ -900,7 +892,7 @@ nfs_Symlink(CLIENT *clnt,
     }
     if(*res != NFS_OK)
     {
-	AKDEBUG((1, "nfs_symlink failed: %s\n", StrNFSErr(*res)));
+	W(DBF_ALWAYS, "nfs_symlink failed: %s", StrNFSErr(*res));
 
 	*Res2 = NFSErr2IoErrCont(*res, 'w');
 	return 0;
@@ -932,7 +924,7 @@ diropokres
     a->mtime.useconds = -1;
 
 #ifdef DEBUG
-    AKDEBUG((0,"\tnfs_MkDir(\"%s\" )\n", name));
+    D(DBF_ALWAYS,"\tnfs_MkDir(\"%s\" )", name);
     FHDEBUG(dirfh);
 #endif
 
@@ -944,7 +936,7 @@ diropokres
     }
     if(res->status != NFS_OK)
     {
-	AKDEBUG((1, "nfs_mkdir failed: %s\n", StrNFSErr(res->status)));
+	W(DBF_ALWAYS, "nfs_mkdir failed: %s", StrNFSErr(res->status));
 
 	*Res2 = NFSErr2IoErrCont(res->status, 'c');
 	return NULL;
@@ -962,7 +954,7 @@ nfs_RmDir(CLIENT *clnt, nfs_fh *dirfh, UBYTE *name, LONG *Res2)
     dop.name = name;
 
 #ifdef DEBUG
-    AKDEBUG((0,"\tnfs_RmDir(\"%s\")\n", name));
+    D(DBF_ALWAYS,"\tnfs_RmDir(\"%s\")", name);
     FHDEBUG(dirfh);
 #endif
 
@@ -975,7 +967,7 @@ nfs_RmDir(CLIENT *clnt, nfs_fh *dirfh, UBYTE *name, LONG *Res2)
 
     if(*res != NFS_OK)
     {
-	AKDEBUG((1, "nfs_rmdir failed: %s\n", StrNFSErr(*res)));
+	W(DBF_ALWAYS, "nfs_rmdir failed: %s", StrNFSErr(*res));
 
 	*Res2 = NFSErr2IoErrCont(*res, 'w');
 	return 0;
@@ -998,7 +990,7 @@ nfs_ReadDir(CLIENT *clnt,
 #if 0
     entry *ent;
 #endif
-    AKDEBUG((0,"\tnfs_ReadDir()\n"));
+    D(DBF_ALWAYS,"\tnfs_ReadDir()");
     FHDEBUG(dir);
 #endif
 
@@ -1016,7 +1008,7 @@ nfs_ReadDir(CLIENT *clnt,
     }
     if(res->status != NFS_OK)
     {
-	AKDEBUG((1, "nfs_readdir failed: %s\n", StrNFSErr(res->status)));
+	W(DBF_ALWAYS, "nfs_readdir failed: %s", StrNFSErr(res->status));
 
 	*Res2 = NFSErr2IoErrCont(res->status, 'r');
 	return NULL;
@@ -1025,14 +1017,13 @@ nfs_ReadDir(CLIENT *clnt,
     *Eof = res->readdirres_u.reply.eof;
     if(res->readdirres_u.reply.eof)
     {
-	AKDEBUG((0,"\t\tEOF reached\n"));
+	D(DBF_ALWAYS,"\t\tEOF reached");
     }
 #if 0
     ent = res->readdirres_u.reply.entries;
     while(ent)
     {
-	AKDEBUG((0,"\t\tent: %s (Id: 0x%08lx)\n", ent->name, 
-		 ent->fileid));
+	D(DBF_ALWAYS,"\t\tent: %s (Id: 0x%08lx)", ent->name, ent->fileid);
 	ent = ent->nextentry;
     }
 #endif
@@ -1052,7 +1043,7 @@ nfs_statfs(CLIENT *clnt, nfs_fh *dir, LONG *Res2)
     }
     if(res->status != NFS_OK)
     {
-	AKDEBUG((2, "statfs failed:%s\n", StrNFSErr(res->status)));
+	E(DBF_ALWAYS, "statfs failed:%s", StrNFSErr(res->status));
 	*Res2 = NFSErr2IoErrCont(res->status, 'r');
 	return NULL;
     }

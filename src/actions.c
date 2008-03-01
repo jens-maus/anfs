@@ -32,8 +32,9 @@
 #include "nfs_handler.h"
 #include "protos.h"
 
-#include "chdebug.h"
 #include "nfsc_iocontrol.h"
+
+#include "Debug.h"
 
 #ifdef DEBUG
 typedef struct 
@@ -183,7 +184,7 @@ static ATEntry *ATEntryRead, *ATEntryWrite;
 LONG
 act_Unknown(Global_T *g, DOSPKT *pkt)
 {
-    AKDEBUG((0, "\t*** action not known\n"));
+    D(DBF_ALWAYS, "\t*** action not known");
 
     return SetRes(g, DOSFALSE, ERROR_ACTION_NOT_KNOWN);
 }
@@ -191,7 +192,7 @@ act_Unknown(Global_T *g, DOSPKT *pkt)
 LONG
 act_IS_WRITE_PROTECTED(Global_T *g, DOSPKT *pkt)
 {
-    AKDEBUG((0, "\t*** software write protected\n"));
+    D(DBF_ALWAYS, "\t*** software write protected");
 
     return SetRes(g, DOSFALSE, ERROR_DISK_WRITE_PROTECTED);
 }
@@ -244,12 +245,12 @@ act_Lookup(LONG action)
     int i=0;
 
 #if DBLU
-    AKDEBUG((0,"ATIndex[i].ati_Low = %ld\n", ATIndex[i].ati_Low));
+    D(DBF_ALWAYS, "ATIndex[i].ati_Low = %ld", ATIndex[i].ati_Low);
 #endif
     while(ATIndex[i].ati_Low <= action)
     {
 #if DBLU
-	AKDEBUG((0,"(2) ATIndex[i].ati_Low = %ld\n", ATIndex[i].ati_Low));
+	D(DBF_ALWAYS,"(2) ATIndex[i].ati_Low = %ld\n", ATIndex[i].ati_Low);
 #endif
 	if(ATIndex[i].ati_Index != -1)
 	    i++;
@@ -257,7 +258,7 @@ act_Lookup(LONG action)
 	    return NULL; /* not found */
     }
 #if DBLU
-    AKDEBUG((0,"(3) ATIndex[i].ati_Low = %ld\n", ATIndex[i].ati_Low));
+    D(DBF_ALWAYS,"(3) ATIndex[i].ati_Low = %ld\n", ATIndex[i].ati_Low);
 #endif
     if(i == 0)
     {
@@ -299,8 +300,7 @@ act_Init(Global_T *g)
 	New = ActionTable[Index].ate_Action;
 	if(New <= Act)
 	{
-	    AKDEBUG((2, "Internal error: ActionTable not monoton: %ld, %ld\n",
-		     Act, New));
+	    E(DBF_ALWAYS, "Internal error: ActionTable not monoton: %ld, %ld", Act, New);
 	    RetVal = 0;
 	    break;
 	}
@@ -317,7 +317,7 @@ act_Init(Global_T *g)
 	    if(IIndex >= (iSize-1)) /* one entry for end marker */
 	    {
 		/* index table exhausted */
-		AKDEBUG((0, "act_Init: Act = %ld\n", Act));
+		D(DBF_ALWAYS, "act_Init: Act = %ld\n", Act);
 
 		IIndex = 0;
 		RetVal = FALSE;
@@ -363,7 +363,7 @@ act_Prepare(Global_T *g, DOSPKT *pkt, BOOL *Internal)
 
     if(!ent)
     {
-	AKDEBUG((1, "act_Prepare: action not in table: %ld\n"));
+	E(DBF_ALWAYS, "act_Prepare: action not in table: %ld\n");
 
 	return NULL;
     }
@@ -402,7 +402,7 @@ act_Prepare(Global_T *g, DOSPKT *pkt, BOOL *Internal)
 	    s += SPrintf(s,"0x%08lx", *lp++);
     }
     SPrintf(s,")\n");
-    AKDEBUG((0,Buf));
+    D(DBF_ALWAYS,Buf);
 #endif
     
     return ent->ate_Func;

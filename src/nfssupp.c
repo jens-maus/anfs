@@ -29,7 +29,7 @@
 
 #include "nfs_handler.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 #define CASE(a,b) case a: s = b; break;
 #define CASE1(a) case a: s = #a; break;
@@ -223,7 +223,7 @@ CLIENT2IoErr(CLIENT *clnt)
 
     clstat = clerr.re_status;
     
-    AKDEBUG((2,"\tCLIENT2IoErr: %ld, %s\n", clstat, clnt_sperrno(clstat)));
+    E(DBF_ALWAYS,"\tCLIENT2IoErr: %ld, %s", clstat, clnt_sperrno(clstat));
 
     max = sizeof(ClntStatConv)/sizeof(struct CSCEnt);
     for(i=0; i< max; i++)

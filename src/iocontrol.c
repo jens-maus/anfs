@@ -34,7 +34,7 @@
 #include "nfs_handler.h"
 #include "protos.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 #include "nfsc_iocontrol.h"
 
@@ -122,7 +122,8 @@ act_IOCONTROL(Global_T *g, DOSPKT *pkt)
     g->g_DoReply = 0;
     rmsg = (struct RexxMsg *) pkt->dp_Link;
 
-    AKDEBUG((0,"ARG(0) = %s\n", ARG0(rmsg)));
+    D(DBF_ALWAYS,"ARG(0) = %s", ARG0(rmsg));
+
     nextchar=stptok(ARG0(rmsg),
 		    Buf,sizeof(Buf)," ");
     while (*nextchar == ' ') nextchar++;

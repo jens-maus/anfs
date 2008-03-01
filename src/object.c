@@ -34,7 +34,7 @@
 
 //#include <aulib/aulib.h>
 
-#include "chdebug.h"
+#include "Debug.h"
 
 LONG act_DELETE_OBJECT(Global_T *g, DOSPKT *pkt)
 {
@@ -387,11 +387,12 @@ act_CREATE_OBJECT(Global_T *g, DOSPKT *pkt)
     switch(Type)
     {
  case ST_BDEVICE:
-	UMode |= auS_IFBLK;
+  #warning "what about auS_IFBLK?"
+	//UMode |= auS_IFBLK;
 	ULen = subtype1;
 	break;
  case ST_CDEVICE:
-	UMode |= auS_IFCHR;
+	//UMode |= auS_IFCHR;
 	ULen = subtype1;
 	break;
     }

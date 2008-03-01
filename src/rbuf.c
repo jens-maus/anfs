@@ -28,17 +28,10 @@
 #include <math.h> /* for min */
 
 #include "nfs_handler.h"
-#include "chdebug.h"
 
 #include "protos.h"
 
-#define RBUF_DEBUG 1
-
-#ifndef RBUF_DEBUG
-#ifdef DEBUG
-#undef DEBUG
-#endif
-#endif
+#define "Debug.h"
 
 /*----------------------------------------------------------------------*/
 
@@ -56,13 +49,11 @@ rb_CreateRBuf(EFH *efh)
     rbh = AllocVec(sizeof(RBUFHDR), MEMF_CLEAR | MEMF_PUBLIC);
     if(rbh)
     {
-	AKDEBUG((0,"\trb_CreateBuf(%08lx) -- ok (%08lx)\n",
-		 efh, rbh));
+	    D(DBF_ALWAYS,"\trb_CreateBuf(%08lx) -- ok (%08lx)", efh, rbh);
     }
     else
     {
-	AKDEBUG((0,"\trb_CreateBuf(%08lx) -- failed\n",
-		 rbh));
+	    D(DBF_ALWAYS,"\trb_CreateBuf(%08lx) -- failed", rbh);
     }
 
     efh->efh_RBuf = rbh;
@@ -77,11 +68,11 @@ rb_DeleteRBuf(EFH *efh)
 {
     RBUFHDR *rbh;
 
-    AKDEBUG((0, "\trb_DeleteRBuf(%08lx)\n", efh));
+    D(DBF_ALWAYS, "\trb_DeleteRBuf(%08lx)", efh);
     
     if(rbh = efh->efh_RBuf)
     {
-	chassert(rbh->rbh_Data == NULL);
+	ASSERT(rbh->rbh_Data == NULL);
 	FreeVec(efh->efh_RBuf);
 	efh->efh_RBuf = NULL;
     }
@@ -94,15 +85,15 @@ rb_ObtainRBufData(Global_T *g, EFH *efh)
     MBUFNODE *rbn;
     RBUFHDR *rbh;
 
-    AKDEBUG((0, "\trb_ObtainRBufData(%08lx)\n", efh));
+    D(DBF_ALWAYS, "\trb_ObtainRBufData(%08lx)", efh);
     
-    chassert(g->g_NumFreeMBufs);
+    ASSERT(g->g_NumFreeMBufs);
     
     rbh = efh->efh_RBuf;
-    chassert(rbh);
+    ASSERT(rbh);
     
     rbn = mb_ObtainMBuf(g);
-    chassert(rbn);
+    ASSERT(rbn);
 
     rbh->rbh_Data = (UBYTE *) rbn;
 }
@@ -113,12 +104,12 @@ rb_ReleaseRBufData(Global_T *g, EFH *efh)
     MBUFNODE *rbn;
     RBUFHDR *rbh;
 
-    AKDEBUG((0, "\trb_ReleaseRBufData(%08lx)\n", efh));
+    D(DBF_ALWAYS, "\trb_ReleaseRBufData(%08lx)", efh);
 
     rbh = efh->efh_RBuf;
-    chassert(rbh);
+    ASSERT(rbh);
     rbn = (MBUFNODE*) rbh->rbh_Data;
-    chassert(rbn);
+    ASSERT(rbn);
 
     mb_ReleaseMBuf(g, rbn);
     

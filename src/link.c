@@ -31,7 +31,7 @@
 #include "nfs_handler.h"
 #include "protos.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 
 /*
@@ -68,7 +68,7 @@ PathWalk(Global_T *g,
     /* (init important !) */
     LONG Res = 1;
 
-    AKDEBUG((0, "\tPathWalk(\"%s\")\n", FullName));
+    D(DBF_ALWAYS, "\tPathWalk(\"%s\")", FullName);
 
     WorkPath = StrNDup(FullName, FullNameLen); /* we will modify WorkPath */
     if(!WorkPath)
@@ -94,15 +94,15 @@ PathWalk(Global_T *g,
 		{
 		    PComp = fn_ScanPath(WorkPath, FullNameLen,
 					&Pos, &LastElement);
-		    chassert(PComp);
+		    ASSERT(PComp);
 
-		    AKDEBUG((0,"\tPComp = \"%s\"\n", PComp));
+		    D(DBF_ALWAYS,"\tPComp = \"%s\"", PComp);
 		    if(*PComp == '/') /* goto parent dir, not allowed in this 
 					 version, must be unified path ! */
 		    {
-			FIXME(("*** parent dir reference not allowed !!\n"));
-			Res = 0;
-			break;
+			    E(DBF_ALWAYS, "FIXME: *** parent dir reference not allowed !!");
+			    Res = 0;
+			    break;
 		    }
 		    ActNEnt = GetNameEntry(g, ParDir, PComp, &ACE, Res2);
 		    if(!ActNEnt)
@@ -122,14 +122,13 @@ PathWalk(Global_T *g,
 		    {
 			nfspath u_lpath;
 		    
-			chassert(ACE);
-			chassert(LinkPath);
+			ASSERT(ACE);
+			ASSERT(LinkPath);
 			u_lpath = nfs_ReadLink(g->g_NFSClnt,
 					       &ACE->ace_NFSFh, Res2);
 			if(u_lpath)
 			{
-			    AKDEBUG((0,"\treadlink returned: %s\n",
-				     u_lpath));
+			    D(DBF_ALWAYS,"\treadlink returned: %s", u_lpath);
 #if 0
 			    if(UseUnixLinks(g))
 				;
@@ -215,7 +214,7 @@ act_READ_LINK(Global_T *g, DOSPKT *pkt)
     {
  case 2:
 	SetRes(g, strlen(Buf), 0);
-	AKDEBUG((0,"Res: %s\n", Buf));
+	D(DBF_ALWAYS,"Res: %s", Buf);
 	break;
  case 1:
 	SetRes(g, DOSFALSE, ERROR_OBJECT_NOT_FOUND);
@@ -224,7 +223,7 @@ act_READ_LINK(Global_T *g, DOSPKT *pkt)
 	SetRes(g, DOSFALSE, Res2);
 	break;
  case -1:
-	AKDEBUG((1,"\tReadLink: buf to small\n"));
+	W(DBF_ALWAYS, "\tReadLink: buf to small");
 	SetRes(g, -2, 0);
 	break;
     }

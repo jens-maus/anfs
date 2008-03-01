@@ -36,7 +36,7 @@
 //#include <aulib/aulib.h>
 //#include <proto/aulib.h>
 
-#include "chdebug.h"
+#include "Debug.h"
 
 LONG act_SET_PROTECT(Global_T *g, DOSPKT *pkt)
 {

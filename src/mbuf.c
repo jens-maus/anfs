@@ -28,9 +28,10 @@
 #include <math.h> /* for min */
 
 #include "nfs_handler.h"
-#include "chdebug.h"
 
 #include "protos.h"
+
+#include "Debug.h"
 
 /*
  * returns TRUE if n is between low and high (inclusive)
@@ -47,9 +48,9 @@ mb_FreeSomeMBufs(Global_T *g, LONG NumBufs)
 {
     MBUFNODE *mbn;
 
-    chassert(NumBufs > 0)
-    chassert(NumBufs <= g->g_NumMBufs);
-    chassert(NumBufs <= g->g_NumFreeMBufs);
+    ASSERT(NumBufs > 0)
+    ASSERT(NumBufs <= g->g_NumMBufs);
+    ASSERT(NumBufs <= g->g_NumFreeMBufs);
 
     g->g_NumMBufs -= NumBufs;
     g->g_NumFreeMBufs -= NumBufs;

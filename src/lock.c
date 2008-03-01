@@ -30,7 +30,7 @@
 #include "protos.h"
 #include "inline.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 ELOCK *DupELock(Global_T *g,
 		ELOCK *OldLock, 
@@ -63,7 +63,7 @@ ELOCK *DupELock(Global_T *g,
 	    return NULL;
 	}
     }
-    chassert(Name);
+    ASSERT(Name);
     NameLen = strlen(Name);
 
     /* we don\'t use lock_Dup here to avoid freeing probably wrong Name */
@@ -127,7 +127,7 @@ ACEntry *c_GetAttr(Global_T *g, u_int FileId, nfs_fh *NFSFh, LONG *Res2)
     if(!ACEnt)
 	*Res2 = ERROR_NO_FREE_STORE;
 
-    AKDEBUG((0,"\tc_GetAttr: new: attr.fileid = 0x%08lx\n", attr->fileid));
+    D(DBF_ALWAYS,"\tc_GetAttr: new: attr.fileid = 0x%08lx", attr->fileid);
     return ACEnt;
 }
 
@@ -151,12 +151,12 @@ NEntry *GetNameEntry(Global_T *g,
     NEntry *NEnt;
     ACEntry *ACE;
 
-    AKDEBUG((0,"\tGetNameEntry(0x%08lx,\"%s\")\n", ActDir->dce_FileId, Name));
+    D(DBF_ALWAYS,"\tGetNameEntry(0x%08lx,\"%s\")", ActDir->dce_FileId, Name);
 
     NEnt = dc_NELookup(g, ActDir, Name);
     if(NEnt)
     {
-	AKDEBUG((0,"\t\tNameEntry: cache ok!\n"));
+	D(DBF_ALWAYS,"\t\tNameEntry: cache ok!");
 
 	if(ACEP) /* attribute cache entry wanted */
 	{
@@ -246,7 +246,7 @@ DCEntry *GetDirEntry(Global_T *g,
     if(ParName != NULL)
 	ActDirId = ParName->ne_FileId;
 
-    AKDEBUG((0, "\tGetDirEntry(0x%08lx)\n", ActDirId));
+    D(DBF_ALWAYS, "\tGetDirEntry(0x%08lx)", ActDirId);
 
     if(ActDirId != DCE_ID_UNUSED)
     {
@@ -257,7 +257,7 @@ DCEntry *GetDirEntry(Global_T *g,
     }
     /* do it the hard way */
 
-    AKDEBUG((0,"\t\tDCE Cache lookup, no entry\n"));
+    D(DBF_ALWAYS,"\t\tDCE Cache lookup, no entry");
 #if 0 /* FIXME */
     if(ParName)
     {
@@ -269,7 +269,7 @@ DCEntry *GetDirEntry(Global_T *g,
     ACEnt = c_GetAttr(g, ActDirId, ActDirFh, Res2);
     if(!ACEnt)
     {
-	AKDEBUG((0,"\t\tc_GetAttr failed\n"));
+	D(DBF_ALWAYS,"\t\tc_GetAttr failed");
 	return NULL;
     }
 
@@ -320,7 +320,7 @@ CBuildFullName(Global_T *g,
     ELOCK *oldelock = NULL;
     LONG LocalRes2 = 0;
 
-    chassert(Res2);
+    ASSERT(Res2);
 
     if(fl == NULL)		/* relative to root */
     {
@@ -383,11 +383,11 @@ CBuildFullName(Global_T *g,
 	{
 	    /* ignore "x:" and handle rest as relative to lock */
 #if 0
-	    AKDEBUG((0,"\tcstr = %s\n", cstr));
-	    AKDEBUG((0,"\tpathWithoutDev = %s\n", pathWithoutDev));
-	    AKDEBUG((0,"\tOldFullName = %s\n", OldFullName));
+	    D(DBF_ALWAYS,"\tcstr = %s", cstr);
+	    D(DBF_ALWAYS,"\tpathWithoutDev = %s", pathWithoutDev);
+	    D(DBF_ALWAYS,"\tOldFullName = %s", OldFullName);
 		
-	    FIXME("IsAbsolute && fl has happened!\n");
+	    E(DBF_ALWAYS, "IsAbsolute && fl has happened!");
 #endif
 	}
     }
@@ -495,8 +495,8 @@ BuildFullName(Global_T *g,
     UBYTE *Res;
     LONG Len;
 
-    chassert(Res2);
-    chassert(cbstr);
+    ASSERT(Res2);
+    ASSERT(cbstr);
 
     fn_B2CStr(cbstr, &cstr, &Len);
     if(!cstr)
@@ -542,7 +542,7 @@ RootLocateDir(Global_T *g,
     LONG Pos = 0; /* fn_ScanPath needs this as buffer */
     /* (init important !) */
 
-    AKDEBUG((0, "\tRootLocateDir(\"%s\")\n", FullName));
+    D(DBF_ALWAYS, "\tRootLocateDir(\"%s\")", FullName);
 
     WorkPath = StrNDup(FullName, FullNameLen); /* we will modify WorkPath */
     if(!WorkPath)
@@ -565,18 +565,18 @@ RootLocateDir(Global_T *g,
 	do
 	{
 	    PComp = fn_ScanPath(WorkPath, FullNameLen, &Pos, &LastElement);
-	    chassert(PComp);
+	    ASSERT(PComp);
 	    if(LastElement)
 	    {
-		AKDEBUG((0,"\tLast PComp = \"%s\"\n", PComp));
+		D(DBF_ALWAYS,"\tLast PComp = \"%s\"", PComp);
 		break;
 	    }
-	    AKDEBUG((0,"\tPComp = \"%s\"\n", PComp));
+	    D(DBF_ALWAYS,"\tPComp = \"%s\"", PComp);
 	    if(*PComp == '/')	/* goto parent dir, not allowed in this 
 				   version, must be unified path ! */
 	    {
-		FIXME(("*** parent dir reference not allowed !!\n"));
-		break;
+		    E(DBF_STARTUP, "FIXME: *** parent dir reference not allowed !!");
+		    break;
 	    }
 	    ActNEnt = GetNameEntry(g, ParDir, PComp, &ACE, Res2);
 	    if(!ActNEnt)
@@ -649,7 +649,7 @@ LRootLocateDir(Global_T *g,
 
     if(IsCString)
     {
-	AKDEBUG((0, "\tLRootLocateDir(\"%s\")\n", RelPath));
+	D(DBF_ALWAYS, "\tLRootLocateDir(\"%s\")", RelPath);
 	FullName = CBuildFullName(g,
 				  fl, RelPath,
 				  &DirLock, /* needed ? */
@@ -667,7 +667,7 @@ LRootLocateDir(Global_T *g,
 	fn_B2CStr(RelPath, &cstr, &Len);
 	if(cstr)
 	{
-	    AKDEBUG((0, "\tLRootLocateDir(\"%s\")\n", cstr));
+	    D(DBF_ALWAYS, "\tLRootLocateDir(\"%s\")", cstr);
 	    fn_Delete(&cstr);
 	}
 #endif
@@ -682,7 +682,7 @@ LRootLocateDir(Global_T *g,
     if(!FullName)
 	return NULL;
 
-    AKDEBUG((0,"\tFullName = \"%s\"\n", FullName));
+    D(DBF_ALWAYS,"\tFullName = \"%s\"", FullName);
 
     ParDir = RootLocateDir(g, FullName, FullNameLen, Res2);
     if(!ParDir)
@@ -731,7 +731,7 @@ RootLocateAndLock(Global_T *g,
     ELOCK *newelock;
     ELOCK *oldelock = NULL; /* (init important !) */
 
-    AKDEBUG((0, "\tRootLocateAndLock(name = \"%s\")\n", RelPath));
+    D(DBF_ALWAYS, "\tRootLocateAndLock(name = \"%s\")", RelPath);
 
     /* test for illegal modes */
     if(!((Mode == SHARED_LOCK) || (Mode == EXCLUSIVE_LOCK)))
@@ -752,7 +752,7 @@ RootLocateAndLock(Global_T *g,
     {
 	return DOSFALSE;
     }
-    AKDEBUG((0,"\tFullName = \"%s\"\n", FullName));
+    D(DBF_ALWAYS,"\tFullName = \"%s\"", FullName);
 
     ParDir = RootLocateDir(g, FullName, FullNameLen, Res2);
     if(!ParDir)
@@ -768,10 +768,10 @@ RootLocateAndLock(Global_T *g,
 	oldelock = lock_LookupFromKey(g, ACE->ace_FAttr.fileid);
 	if(oldelock)
 	{
-	    AKDEBUG((0,"\told Lock found\n"));
+	    D(DBF_ALWAYS,"\told Lock found");
 	    if(!IsSameFH(&ACE->ace_NFSFh, &oldelock->efl_NFSFh))
 	    {
-		AKDEBUG((1, "possible inconsistency, LocateObject, different FHs\n"));
+		W(DBF_ALWAYS, "possible inconsistency, LocateObject, different FHs");
 	    }
 	    if(ACE->ace_FAttr.type != oldelock->efl_NFSType)
 	    {
@@ -779,12 +779,12 @@ RootLocateAndLock(Global_T *g,
 		/* we just ignore this for now and take actual values,
 		   if someone uses the changed lock later this will
 		   fail hopefully itself */
-	    	AKDEBUG((1, "possible inconsistency, file type changed\n"));
+	    	W(DBF_ALWAYS, "possible inconsistency, file type changed");
 	    }
 	}
 	else
 	{
-	    AKDEBUG((0,"\tno old Lock found\n"));
+	    D(DBF_ALWAYS,"\tno old Lock found");
 	}
     }    
     /* Note: oldelock may be NULL here,
@@ -828,7 +828,7 @@ RootLocateAndLock(Global_T *g,
 
     if(FullNameLen)
     {
-	chassert(ACE);
+	ASSERT(ACE);
 	CopyFH(&ACE->ace_NFSFh, &newelock->efl_NFSFh);
 	newelock->efl_NFSType = ACE->ace_FAttr.type;
 	newelock->efl_Lock.fl_Key = ACE->ace_FAttr.fileid;
@@ -970,7 +970,7 @@ do_act_PARENT(Global_T *g, ELOCK *oldelock)
     if(!oldelock)
 	return SetRes(g, DOSFALSE, ERROR_INVALID_LOCK);
 
-    AKDEBUG((0, "\tFullName = \"%s\"\n", oldelock->efl_FullName));
+    D(DBF_ALWAYS, "\tFullName = \"%s\"", oldelock->efl_FullName);
 
     if((oldelock->efl_FullNameLen == 0) ||
        (oldelock->efl_FullName[oldelock->efl_FullNameLen-1] == ':'))
@@ -987,7 +987,7 @@ do_act_PARENT(Global_T *g, ELOCK *oldelock)
     fl = NULL; /* start at root */
     if(elock = RootLocateAndLock(g, fl, DirName, SHARED_LOCK, &Res2))
     {
-	AKDEBUG((0,"\tout = \"%s\"\n", elock->efl_FullName));
+	D(DBF_ALWAYS,"\tout = \"%s\"", elock->efl_FullName);
 	SetRes(g, MKBADDR(elock), 0);
     }
     else

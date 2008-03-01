@@ -35,7 +35,7 @@
 #include "protos.h"
 #include "inline.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 typedef struct { u_int Id; } dc_Key_T;
 
@@ -56,8 +56,8 @@ DeleteNEnt(NEntry **PNEnt)
 {
     NEntry *NEnt;
 
-    chassert(PNEnt);
-    chassert(*PNEnt);
+    ASSERT(PNEnt);
+    ASSERT(*PNEnt);
 
     NEnt = *PNEnt;
     fn_Delete(&NEnt->ne_Name);
@@ -70,8 +70,8 @@ dce_Delete(DCEntry **dcent)
 {
     NEntry *nent, *hnent;
 
-    chassert(dcent);
-    chassert(*dcent);
+    ASSERT(dcent);
+    ASSERT(*dcent);
 
     nent = (*dcent)->dce_Entries;
     while(nent)
@@ -90,7 +90,7 @@ dc_FreeVal(FTHashTable *tb, FTHashEntry *ent)
 {
     DCEntry **dcentp;
 
-    chassert(ent->the_Val);
+    ASSERT(ent->the_Val);
 
     dcentp = (DCEntry **) &ent->the_Val;
     dce_Delete(dcentp);
@@ -148,7 +148,7 @@ dc_DCECreateAndInsert(Global_T *g,
 
     Key.Id = fileid;
 
-    chassert(FH);
+    ASSERT(FH);
 
     ent = AllocVec(sizeof(DCEntry), MEMF_CLEAR);
     if(!ent)
@@ -199,7 +199,7 @@ dc_NECreateAndInsert(Global_T *g,
     NEntry *ent;
     UBYTE *Name;
 
-    chassert(AName);
+    ASSERT(AName);
 
     ent = AllocVec(sizeof(NEntry), MEMF_CLEAR);
     if(!ent)
@@ -238,12 +238,12 @@ dc_NELookup(Global_T *g,
     ULONG Hash;
     NEntry *NEnt;
 
-    chassert(Name);
+    ASSERT(Name);
     Hash = dc_NEStr2Hash(Name);
     NEnt = DCEnt->dce_Entries;
     while(NEnt)
     {
-	chassert(NEnt->ne_Name);
+	ASSERT(NEnt->ne_Name);
 
 	if((Hash == NEnt->ne_Hash) && (strcmp(Name, NEnt->ne_Name) == 0))
 	    break;

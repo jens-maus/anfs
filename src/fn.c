@@ -47,14 +47,9 @@
 typedef UBYTE *CBSTR;
 #endif
 
-#include "chdebug.h"
+#include "Debug.h"
 
 #define MASSIVE_ASSERT 0
-
-#if 0
-#undef AKDEBUG
-#define AKDEBUG(x)
-#endif
 
 /* convert amiga "/" style to unix ./.. style */
 /* e.g. dir1//dir2 is mapped to dir1/../dir2 */
@@ -95,7 +90,7 @@ fn_AM2UN(UBYTE *s)
 	}
 	*s2 = '\0';
 #if MASSIVE_ASSERT
-	chassert(strlen(s3) < l+1+ecnt);
+	ASSERT(strlen(s3) < l+1+ecnt);
 #endif
     }	     
     return s3;
@@ -126,10 +121,10 @@ fn_AddPart(UBYTE *s1, LONG l1, UBYTE *s2, LONG l2, UBYTE **ds, LONG *dl)
     if(l2 == -1) l2 = strlen(s2);
 
 
-    AKDEBUG((0,"fn_AddPart( \"%s\" , \"%s\")\n", s1, s2));
+    D(DBF_ALWAYS,"fn_AddPart( \"%s\" , \"%s\")\n", s1, s2);
 
-    chassert(s1);
-    chassert(s2);
+    ASSERT(s1);
+    ASSERT(s2);
     
     l = l1+l2+3;
     s = AllocVec(l, MEMF_PUBLIC);
@@ -150,9 +145,9 @@ fn_AddPart(UBYTE *s1, LONG l1, UBYTE *s2, LONG l2, UBYTE **ds, LONG *dl)
 	*ds = s;
 
 #if MASSIVE_ASSERT
-	chassert(*dl < l);
+	ASSERT(*dl < l);
 #endif
-	AKDEBUG((0,"\t = \"%s\"\n", s));
+	D(DBF_ALWAYS,"\t = \"%s\"\n", s);
 	return;
     }
 
@@ -176,7 +171,7 @@ __inline UBYTE *StrNDup(const UBYTE *s, LONG l)
 
 __inline UBYTE *StrDup(const UBYTE *s)
 {
-    return StrNDup(s, strlen(s));
+    return StrNDup(s, strlen(s);
 }
 
 /* 
@@ -205,21 +200,21 @@ void fn_FilePart(UBYTE *s, LONG l, UBYTE **ds, LONG *dl)
 
     if(!p1[0]) /* e.g. a/b/c/d/ but also /a/b/c/d// ... */
     {
-	chassert(l>1);
+	ASSERT(l>1);
 	/* FIXME: better solution possible */
 	/* we need to modify s, so make a copy */
 	s2 = StrNDup(s, l);
 	if(s2)
 	{
 	    p1 = s2 + (p1-s);
-	    chassert(p1[-1] == '/'); /* real assert */
+	    ASSERT(p1[-1] == '/'); /* real assert */
 
 	    if(p1[-2] == '/')
 	    {
-		FIXME("add support for PathNames like a/b/c/d//");
-		FreeVec(s2);
-		*ds = NULL;
-		return;
+		    E(DBF_ALWAYS, "FIXME: add support for PathNames like a/b/c/d//");
+    		FreeVec(s2);
+		    *ds = NULL;
+    		return;
 	    }
 	    p1[-1] = '\0'; /* strip single "/" */
 	    p1 = FilePart(s2);
@@ -231,7 +226,7 @@ void fn_FilePart(UBYTE *s, LONG l, UBYTE **ds, LONG *dl)
 	    return;
 	}
     }
-    chassert(p1[0]);
+    ASSERT(p1[0]);
 
     l2 = s+l-p1;
 
@@ -242,7 +237,7 @@ void fn_FilePart(UBYTE *s, LONG l, UBYTE **ds, LONG *dl)
 #if MASSIVE_ASSERT
     if(*ds)
     {
-	chassert(strlen(*ds) == *dl);
+	ASSERT(strlen(*ds) == *dl);
     }
 #endif
 }
@@ -286,26 +281,26 @@ UBYTE *fn_ScanPath(UBYTE *APath, LONG PathLen, LONG *PosP, LONG *LastElement)
     register UBYTE c, *p, *e;
     LONG Pos;
 
-    chassert(APath);
-    chassert(PathLen);
-    chassert(PosP);
+    ASSERT(APath);
+    ASSERT(PathLen);
+    ASSERT(PosP);
 #ifdef DEBUG
     if(!(*PosP))
     {
-	chassert(strlen(APath) == PathLen);
+	ASSERT(strlen(APath) == PathLen);
     }
     else
     {
-	chassert(*PosP <= PathLen);
+	ASSERT(*PosP <= PathLen);
     }
 #endif
-    chassert(LastElement);
-    chassert(!(*LastElement));
+    ASSERT(LastElement);
+    ASSERT(!(*LastElement);
 
     p = APath;
     Pos = *PosP;
 
-    AKDEBUG((0,"\tScanPath(\"%s\", %ld, %ld)\n", APath, PathLen, *PosP));
+    D(DBF_ALWAYS,"\tScanPath(\"%s\", %ld, %ld)\n", APath, PathLen, *PosP);
 
     if(Pos != 0)
     {
@@ -316,7 +311,7 @@ UBYTE *fn_ScanPath(UBYTE *APath, LONG PathLen, LONG *PosP, LONG *LastElement)
 #ifdef DEBUG
     if(PathLen > 1)
     {
-	chassert(*p); /* will fail for illegal pathes from list above */
+	ASSERT(*p); /* will fail for illegal pathes from list above */
     }
 #endif
 
@@ -326,12 +321,12 @@ UBYTE *fn_ScanPath(UBYTE *APath, LONG PathLen, LONG *PosP, LONG *LastElement)
     {
 	if(e != p) /* something between slashes */
 	{
-	    chassert(c == '/');
+	    ASSERT(c == '/');
 	    *e = 0; /* terminate string */
 	}
 	*PosP = (e - APath) + 1; /* 1 means APath[0] */
 #if MASSIVE_ASSERT
-	chassert(*PosP < PathLen);
+	ASSERT(*PosP < PathLen);
 #endif
     }
     else
@@ -376,7 +371,7 @@ fn_PathUnify(UBYTE *ss, /* Input Parameter */
     UBYTE *s=ss,*d, *d0, c;
     LONG AddSep;
 
-    AKDEBUG((0, "fn_PathUnify( \"%s\" )\n", ss));
+    D(DBF_ALWAYS, "fn_PathUnify( \"%s\" )\n", ss);
 
     l = strlen(s);
 #if MASSIVE_ASSERT
@@ -502,20 +497,20 @@ fn_PathUnify(UBYTE *ss, /* Input Parameter */
 	*Len = d-d0;
     }
 #if MASSIVE_ASSERT
-    chassert((d-d0) < memlen);
+    ASSERT((d-d0) < memlen);
 #endif
 
     if((*d0 == '/')
        || ((*s == '.') && (s[1] == '.') &&(!s[2] || (s[2] == '/'))))
     {
-	AKDEBUG((0, "considered illegal (leading / or ../): \t = \"%s\"\n", d0));
+	D(DBF_ALWAYS, "considered illegal (leading / or ../): \t = \"%s\"\n", d0);
 
 	FreeVec(d0);
 	*Res2 = ERROR_OBJECT_NOT_FOUND;
 	return NULL;
     }
 
-    AKDEBUG((0, "\t = \"%s\"\n", d0));
+    D(DBF_ALWAYS, "\t = \"%s\"\n", d0);
 
     return d0;
 }
@@ -570,7 +565,7 @@ UBYTE *fn_BPathWithoutDev(CBSTR bs, LONG *IsAbsolute, LONG *Res2)
 
     d[l] = '\0';
 #if MASSIVE_ASSERT
-    chassert(strlen(d) < memlen);
+    ASSERT(strlen(d) < memlen);
 #endif
     return d;
 }
@@ -652,7 +647,7 @@ void fn_PathPart(UBYTE *s, LONG l, UBYTE **ds, LONG *dl)
     UBYTE *p1;
     LONG l2;
 
-    AKDEBUG((0,"\tfn_PathPart(\"%s\"\n", s));
+    D(DBF_ALWAYS,"\tfn_PathPart(\"%s\"\n", s);
     if(!l) /* Name: "" */
     {
 	*ds = StrDup("");
@@ -668,7 +663,7 @@ void fn_PathPart(UBYTE *s, LONG l, UBYTE **ds, LONG *dl)
     p1 = s + l -1; /* points to last char */
     if(p1[0] == '/')
     {
-	chassert(0); /* FIXME: not supported yet */
+	ASSERT(0); /* FIXME: not supported yet */
 #if 0
 	if(l>1)
 	{
@@ -686,7 +681,7 @@ void fn_PathPart(UBYTE *s, LONG l, UBYTE **ds, LONG *dl)
 	}
 #endif
     }
-    chassert(s[l-1] != '/');
+    ASSERT(s[l-1] != '/');
     
     p1 = PathPart(s); /* FIXME: use DirPath? use fn_DirPath at caller ?*/
     l2 = p1-s;
@@ -696,10 +691,10 @@ void fn_PathPart(UBYTE *s, LONG l, UBYTE **ds, LONG *dl)
     {
 	p1[l2] = 0;	/* null terminate string */
 #if MASSIVE_ASSERT
-    chassert(strlen(p1) <= l2);
+    ASSERT(strlen(p1) <= l2);
 #endif
 
-	AKDEBUG((0,"\t\t= \"%s\"\n", p1));
+	D(DBF_ALWAYS,"\t\t= \"%s\"\n", p1);
     }
     *dl = l2;
 }
@@ -710,8 +705,8 @@ void fn_DirPart(UBYTE *s, LONG l, UBYTE **ds, LONG *dl)
     UBYTE *p1;
     LONG l2;
     
-    chassert(l);
-    chassert(s[l-1] != ':');
+    ASSERT(l);
+    ASSERT(s[l-1] != ':');
 #if 0
     if(!l)
     {
@@ -726,7 +721,7 @@ void fn_DirPart(UBYTE *s, LONG l, UBYTE **ds, LONG *dl)
 	return;
     }
 #endif
-    chassert(s[l-1] != '/');
+    ASSERT(s[l-1] != '/');
     
     p1 = PathPart(s);
     l2 = p1-s;
@@ -783,8 +778,8 @@ fn_InsertLink(UBYTE *Buf, ULONG BufLen,
     }
     if(From > 0)
     {
-	chassert(Path[0] != ':');
-	chassert(Path[From-1] != ':');
+	ASSERT(Path[0] != ':');
+	ASSERT(Path[From-1] != ':');
 	if(From < BufFree)
 	{
 	    memcpy(d, Path, From-1); /* don\'t copy "/" */
@@ -803,8 +798,8 @@ fn_InsertLink(UBYTE *Buf, ULONG BufLen,
     }
     if(Path[From+Len] == 0) /* path does end after part */
 	return Buf;
-    chassert(Path[From+Len] == '/');
-    chassert(Path[From+Len+1]);
+    ASSERT(Path[From+Len] == '/');
+    ASSERT(Path[From+Len+1]);
     
     if(!AddPart(Buf, &Path[From+Len+1], BufLen))
     {

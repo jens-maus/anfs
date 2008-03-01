@@ -31,7 +31,7 @@
 #include "nfs_handler.h"
 #include "protos.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 #if 0
 #define DISABLED 1
@@ -126,9 +126,9 @@ act_TIMER(Global_T *g, DOSPKT *pkt)
 
     if(pkt != st->st_Pkt)
     {
-	AKDEBUG((2,"illegal packet received\n"));
+	    E(DBF_ALWAYS, "illegal packet received");
 	
-	SetRes(g, DOSFALSE, ERROR_OBJECT_WRONG_TYPE);
+    	SetRes(g, DOSFALSE, ERROR_OBJECT_WRONG_TYPE);
     }
     else
     {

@@ -40,7 +40,7 @@
 #include <time.h>
 
 #include "supp.h"
-#include "chdebug.h"
+#include "Debug.h"
 
 
 int kdebug = 0;

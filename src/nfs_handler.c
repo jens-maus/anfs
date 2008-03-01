@@ -43,11 +43,10 @@ extern unsigned long stacksize(void);
 #include "protos.h"
 #include "inline.h"
 
-#include "chdebug.h"
-
 #include "rpc/clnt_audp.h"
 #include "rpc/clnt_ageneric.h"
 
+#include "Debug.h"
 
 static const char Version[] = "$VER: ch_nfsc Version 1.02 Beta (30 Jun 94)";
 
@@ -76,13 +75,13 @@ G_CleanUp(Global_T *g)
 #ifdef DEBUG
     if(g->g_Dev)
     {
-	chassert(g->g_Dev->dl_LockList  == NULL);
+	ASSERT(g->g_Dev->dl_LockList  == NULL);
     }
 #endif
-    chassert(g->g_FH == NULL);
+    ASSERT(g->g_FH == NULL);
 
     dir_DeleteAll(g);
-    chassert(g->g_DH == NULL);
+    ASSERT(g->g_DH == NULL);
     
     mb_FreeMBufs(g);
     wc_FreeWBufs(g);
@@ -383,23 +382,19 @@ G_Mount(Global_T *g, char **reason)
 	    struct timeval to;
 
 	    clnt_control(g->g_NFSClnt, CLGET_TIMEOUT, &to);
-	    AKDEBUG((0,"G_Mount: old timeout = ( %ld sec, %ld usec)\n", 
-		     to.tv_sec, to.tv_usec));
+	    D(DBF_ALWAYS,"G_Mount: old timeout = ( %ld sec, %ld usec)", to.tv_sec, to.tv_usec);
 
 	    to.tv_sec = g->g_RPCTimeout;
 	    to.tv_usec = 0;
-	    AKDEBUG((0,"G_Mount: new timeout = ( %ld sec, %ld usec)\n", 
-		     to.tv_sec, to.tv_usec));
+	    D(DBF_ALWAYS,"G_Mount: new timeout = ( %ld sec, %ld usec)", to.tv_sec, to.tv_usec);
 	    clnt_control(g->g_NFSClnt, CLSET_TIMEOUT, &to);
 
 	    clnt_control(g->g_NFSClnt, CLGET_RETRY_TIMEOUT, &to);
-	    AKDEBUG((0,"G_Mount: old retry timeout = ( %ld sec, %ld usec)\n", 
-		     to.tv_sec, to.tv_usec));
+	    D(DBF_ALWAYS,"G_Mount: old retry timeout = ( %ld sec, %ld usec)", to.tv_sec, to.tv_usec);
 
 	    to.tv_sec = g->g_RPCTimeout/5;
 	    to.tv_usec = 0;
-	    AKDEBUG((0,"G_Mount: new retry timeout = ( %ld sec, %ld usec)\n", 
-		     to.tv_sec, to.tv_usec));
+	    D(DBF_ALWAYS,"G_Mount: new retry timeout = ( %ld sec, %ld usec)", to.tv_sec, to.tv_usec);
 	    clnt_control(g->g_NFSClnt, CLSET_RETRY_TIMEOUT, &to);
 	}
 
@@ -407,7 +402,7 @@ G_Mount(Global_T *g, char **reason)
 	if(!MntAttr)
 	{
 	    *reason = "getattr failed";
-	    AKDEBUG((2,"nfs_GetAttr returned Res2 = %ld\n", Res2));
+	    E(DBF_ALWAYS,"nfs_GetAttr returned Res2 = %ld", Res2);
 	    return 0;
 	}
 	CopyMem(MntAttr, &g->g_MntAttr, sizeof(*MntAttr));
@@ -937,14 +932,14 @@ main(int argc, char *argv[])
 #ifdef DEBUG
 		if(Globals.g_Res1 != DOSFALSE)
 		{
-		    AKDEBUG((0, "\t--- succeeded (0x%08lx (0x%08lx))\n",
+		    D(DBF_ALWAYS, "\t--- succeeded (0x%08lx (0x%08lx))",
 			     Globals.g_Res1,
-			     BADDR(Globals.g_Res1)));
+			     BADDR(Globals.g_Res1));
 		}
 		else
 		{
-		    AKDEBUG((0, "\t*** failed with %ld\n",
-			     Globals.g_Res2));
+		    D(DBF_ALWAYS, "\t*** failed with %ld",
+			     Globals.g_Res2);
 		}
 #endif
 		G_ReplyPkt(g, MyPkt);
@@ -966,7 +961,7 @@ main(int argc, char *argv[])
     {
 	/* what do do ??? */
 	UnLockDosList(LDF_WRITE | LDF_VOLUMES);
-	chassert("Remove Volume failed" == NULL);
+	ASSERT("Remove Volume failed" == NULL);
     }
     else
 	UnLockDosList(LDF_WRITE | LDF_VOLUMES);

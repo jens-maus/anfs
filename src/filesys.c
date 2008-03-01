@@ -31,7 +31,7 @@
 #include "nfs_handler.h"
 #include "protos.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 LONG act_IS_FILESYSTEM(Global_T *g, DOSPKT *pkt)
 {
@@ -80,7 +80,7 @@ FlushProc(Global_T *g, EFH *efh, void *arg)
     {
 	if(wc_FlushCache(g, efh, &Res2) == DOSFALSE)
 	{
-	    chassert(Res2);
+	    ASSERT(Res2);
 	    efh->efh_Res2 = Res2;
 	    SetRes(g, DOSFALSE, Res2);
 	}
@@ -263,11 +263,11 @@ act_MORE_CACHE(Global_T *g, DOSPKT *pkt)
 	    g->g_NumBuffers = NumBufs;
 	}
 	
-	AKDEBUG((0,"\tNew Buffer/Cache values:\n"));
-	AKDEBUG((0,"\t\tBuffers = %ld\n", g->g_NumBuffers));
-	AKDEBUG((0,"\t\tMBufs   = %ld\n", g->g_NumMBufs));
-	AKDEBUG((0,"\t\tAttrs   = %ld\n", g->g_AttrCacheMaxEntries));
-	AKDEBUG((0,"\t\tDirs    = %ld\n", g->g_DirCacheMaxEntries));
+	D(DBF_ALWAYS,"\tNew Buffer/Cache values:\n");
+	D(DBF_ALWAYS,"\t\tBuffers = %ld\n", g->g_NumBuffers);
+	D(DBF_ALWAYS,"\t\tMBufs   = %ld\n", g->g_NumMBufs);
+	D(DBF_ALWAYS,"\t\tAttrs   = %ld\n", g->g_AttrCacheMaxEntries);
+	D(DBF_ALWAYS,"\t\tDirs    = %ld\n", g->g_DirCacheMaxEntries);
 	if(ok)
 	{
 	    return SetRes(g, DOSTRUE, g->g_NumBuffers);

@@ -36,7 +36,7 @@
 #include <libraries/usergroup.h>
 #include <proto/usergroup.h>
 
-#include "chdebug.h"
+#include "Debug.h"
 
 void
 cr_Init(CRED *cr)
@@ -233,7 +233,7 @@ cr_SetAuth(CRED *cr, struct Task *client, const char *HostName)
 	if(pw)
 	    numgrp = cr_getgroups(cr->cr_UserName, NGROUPS, groups);
 	
-	AKDEBUG((0,"pw = %08lx, numgrp = %ld\n", pw, numgrp));
+	D(DBF_ALWAYS,"pw = %08lx, numgrp = %ld\n", pw, numgrp);
 	    
 	if(pw && (numgrp >= 0))
 	{
@@ -254,7 +254,7 @@ cr_SetAuth(CRED *cr, struct Task *client, const char *HostName)
 				      groups);
 	    if(an_auth)
 	    {
-		AKDEBUG((0,"auth = %08lx\n", an_auth));
+		D(DBF_ALWAYS,"auth = %08lx\n", an_auth);
 		
 		if(cr->cr_Auth)
 		    auth_destroy(cr->cr_Auth);

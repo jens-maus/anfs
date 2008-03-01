@@ -38,7 +38,7 @@
 #include "protos.h"
 #include "inline.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 #if 0
 static LONG act_FIND(Global_T *g, DOSPKT *pkt, LONG AMode,
@@ -88,7 +88,7 @@ static LONG act_FIND(Global_T *g, DOSPKT *pkt, LONG AMode,
     }
     else
     {
-	FIXME(("This FIND case needs to be fixed!"));
+	#warning "This FIND case needs to be fixed!"
 	return SetRes(g, DOSFALSE, ERROR_NOT_IMPLEMENTED);
 
 	dres = nfs_Lookup(g->g_NFSClnt, 
@@ -194,7 +194,7 @@ static LONG act_FIND(Global_T *g, DOSPKT *pkt, LONG AMode,
 
     if(g->g_Res1 != DOSFALSE)
     {
-	AKDEBUG((0,"\tfile arg1 = %08lx\n", fh->fh_Args));
+	D(DBF_ALWAYS,"\tfile arg1 = %08lx\n", fh->fh_Args);
     }
     return g->g_Res1;
 }
@@ -314,7 +314,7 @@ LONG act_FINDREADWRITE(Global_T *g, DOSPKT *pkt, LONG FileMode, LONG Mode)
 
     if(Res1 != DOSFALSE)
     {
-	AKDEBUG((0,"\tFile Arg1 = %08lx\n", fh->fh_Args));
+	D(DBF_ALWAYS,"\tFile Arg1 = %08lx\n", fh->fh_Args);
 	rb_CreateRBuf(efh);
     }
     
@@ -404,7 +404,7 @@ LONG act_FH_FROM_LOCK(Global_T *g, DOSPKT *pkt)
 
     if(g->g_Res1 != DOSFALSE)
     {
-	AKDEBUG((0,"\tFile Arg1 = %08lx\n", fh->fh_Args));
+	D(DBF_ALWAYS,"\tFile Arg1 = %08lx\n", fh->fh_Args);
 	rb_CreateRBuf(efh);
     }
 
@@ -505,7 +505,7 @@ act_FINDOUTPUT(Global_T *g, DOSPKT *pkt)
 	SetRes(g, DOSFALSE, ERROR_NO_FREE_STORE);
 	goto exit;
     }
-    AKDEBUG((0, "\tfile lock = 0x%08lx\n", elock));
+    D(DBF_ALWAYS, "\tfile lock = 0x%08lx\n", elock);
     CopyFH(&dres->file, &elock->efl_NFSFh);
     elock->efl_NFSType = NFREG;
     elock->efl_Lock.fl_Key = dres->attributes.fileid;
@@ -516,7 +516,7 @@ act_FINDOUTPUT(Global_T *g, DOSPKT *pkt)
 	SetRes(g, DOSFALSE, ERROR_NO_FREE_STORE);
 	goto exit;
     }
-    AKDEBUG((0, "\tfile handle = 0x%08lx\n", efh));
+    D(DBF_ALWAYS, "\tfile handle = 0x%08lx\n", efh);
     fh_Insert(g, efh);
     lock_Insert(g, elock);
     fh->fh_Arg1 = efh->efh_Id;
@@ -542,7 +542,7 @@ act_FINDOUTPUT(Global_T *g, DOSPKT *pkt)
 	if(g->g_BufSizePerFile)
 	    wc_CreateCache(efh, g->g_BufSizePerFile/MBUFSIZE);
 	rb_CreateRBuf(efh);
-	AKDEBUG((0,"\tfile arg1 = %08lx\n", fh->fh_Args));
+	D(DBF_ALWAYS,"\tfile arg1 = %08lx\n", fh->fh_Args);
     }
 
     return g->g_Res1;
@@ -591,7 +591,7 @@ LONG act_END(Global_T *g, DOSPKT *pkt)
 	elock = efh->efh_ELock;
 	if(!elock)
 	{
-	    FIXME("elock == NULL");
+	    E(DBF_ALWAYS, "elock == NULL");
 	}
 	else
 	{
@@ -600,8 +600,8 @@ LONG act_END(Global_T *g, DOSPKT *pkt)
 	    xelock = lock_Remove(g, elock);
 	    if(!xelock)
 	    {
-		FIXME("elock not in list !");
-		AKDEBUG((2,"elock = 0x%08lx\n", elock));
+		    E(DBF_ALWAYS, "elock not in list !");
+		    E(DBF_ALWAYS, "elock = 0x%08lx", elock);
 	    }
 	    else
 		lock_Delete(g, &xelock);
@@ -610,7 +610,7 @@ LONG act_END(Global_T *g, DOSPKT *pkt)
 	efh = fh_Remove(g, efh);
 	if(!efh)
 	{
-	    FIXME("efh == NULL");
+	    E(DBF_ALWAYS, "efh == NULL");
 	}
 	else
 	    fh_Delete(g, &efh);

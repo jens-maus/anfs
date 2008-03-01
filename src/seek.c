@@ -27,7 +27,7 @@
 #include "nfs_handler.h"
 #include "protos.h"
 
-#include "chdebug.h"
+#include "Debug.h"
 
 #if 0
 #define DEEPDEBUG 1
@@ -61,10 +61,10 @@ LONG act_SEEK(Global_T *g, DOSPKT *pkt)
 	    break;
 	}
 #ifdef DEEPDEBUG
-	AKDEBUG((0,"\tOldPos = 0x%08lx, NewPos = 0x%08lx\n",
-		 OldPos, NewPos));
-	AKDEBUG((0,"\tFilePos = 0x%08lx, FileLen = 0x%08lx\n",
-		 efh->efh_FilePos, efh->efh_FileLen));
+	D(DBF_ALWAYS,"\tOldPos = 0x%08lx, NewPos = 0x%08lx",
+		 OldPos, NewPos);
+	D(DBF_ALWAYS,"\tFilePos = 0x%08lx, FileLen = 0x%08lx",
+		 efh->efh_FilePos, efh->efh_FileLen);
 #endif
 	if((0 <= NewPos) && (NewPos <= efh->efh_FileLen))
 	{

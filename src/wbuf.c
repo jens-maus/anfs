@@ -28,9 +28,10 @@
 #include <math.h> /* for min */
 
 #include "nfs_handler.h"
-#include "chdebug.h"
 
 #include "protos.h"
+
+#include "Debug.h"
 
 /*
  * some (?) cases the write cache must be flushed: (FIXME)
@@ -71,14 +72,12 @@ wc_CreateCache(EFH *efh, LONG MaxBufs)
     wbc = AllocVec(sizeof(WBUFCLUSTER), MEMF_CLEAR | MEMF_PUBLIC);
     if(wbc)
     {
-	wbc->wbc_WBufsMax = MaxBufs;
-	AKDEBUG((0,"\twc_CreateCache(%08lx, %08lx) -- ok (%08lx)\n",
-		 efh, MaxBufs, wbc));
+	    wbc->wbc_WBufsMax = MaxBufs;
+	    D(DBF_ALWAYS,"\twc_CreateCache(%08lx, %08lx) -- ok (%08lx)", efh, MaxBufs, wbc);
     }
     else
     {
-	AKDEBUG((0,"\twc_CreateCache(%08lx, %08lx) -- failed\n",
-		 efh, MaxBufs));
+    	D(DBF_ALWAYS,"\twc_CreateCache(%08lx, %08lx) -- failed", efh, MaxBufs);
     }
 
     efh->efh_WBuf = wbc;
@@ -93,13 +92,13 @@ wc_DeleteCache(EFH *efh)
 {
     WBUFCLUSTER *wbc;
 
-    AKDEBUG((0, "\twc_DeleteCache(%08lx)\n", efh));
+    D(DBF_ALWAYS, "\twc_DeleteCache(%08lx)", efh);
     
     if(wbc = efh->efh_WBuf)
     {
 	if(wbc->wbc_WBufsUsed)
 	{
-	    FIXME("Internal error: wc_DeleteCache(), cache not empty\n");
+    E(DBF_ALWAYS, "FIXME: Internal error: wc_DeleteCache(), cache not empty");
 	}
 	FreeVec(efh->efh_WBuf);
 	efh->efh_WBuf = NULL;
@@ -111,7 +110,7 @@ wc_FreeWBufs(Global_T *g)
 {
     WBUFHDR *wbh;
 
-    chassert(g->g_NumFreeWBufHdrs == g->g_NumWBufHdrs);
+    ASSERT(g->g_NumFreeWBufHdrs == g->g_NumWBufHdrs);
 
     while(wbh = g->g_FreeWBufHdr)
     {
@@ -211,7 +210,7 @@ FlushCacheAndWrite(Global_T *g,
 {
     LONG Res1;
 
-    AKDEBUG((0, "\tFlushCacheAndWrite()\n"));
+    D(DBF_ALWAYS, "\tFlushCacheAndWrite()");
     
     /*
       possible problem:
@@ -258,8 +257,8 @@ FlushCacheAndWrite(Global_T *g,
 
 void WBufAddTail(WBUFCLUSTER *wbc, WBUFHDR *wbh)
 {
-    chassert(wbc);
-    chassert(wbh);
+    ASSERT(wbc);
+    ASSERT(wbh);
 
     wbc->wbc_WBufsUsed++;
     wbh->wbh_Next = NULL;
@@ -276,8 +275,8 @@ void WBufAddTail(WBUFCLUSTER *wbc, WBUFHDR *wbh)
 
 void WBufAddHead(WBUFCLUSTER *wbc, WBUFHDR *wbh)
 {
-    chassert(wbc);
-    chassert(wbh);
+    ASSERT(wbc);
+    ASSERT(wbh);
 
     wbc->wbc_WBufsUsed++;
 	
@@ -295,8 +294,8 @@ void WBufAddHead(WBUFCLUSTER *wbc, WBUFHDR *wbh)
 
 void WBufInsert(WBUFCLUSTER *wbc, WBUFHDR *oldwbh, WBUFHDR *wbh)
 {
-    chassert(wbc);
-    chassert(wbh);
+    ASSERT(wbc);
+    ASSERT(wbh);
     
     if(oldwbh)
     {
@@ -345,7 +344,7 @@ WBufsAvail(Global_T *g)
 static __inline LONG
 IsInInfo(LONG offs,WBUFHDRINFO *wbi)
 {
-    chassert((wbi->wbi_To - wbi->wbi_From) > 0);
+    ASSERT((wbi->wbi_To - wbi->wbi_From) > 0);
     
     return IsInclBetween(offs, wbi->wbi_From, wbi->wbi_To);
 }
@@ -359,13 +358,13 @@ WBufDoMelt(WBUFHDR *wbh, WBUFHDRINFO *wbi, LONG Offs, LONG To)
     WBUFHDRINFO *nwbi;
 
     i = (wbi - wbh->wbh_Info);
-    chassert(i >= 0);
+    ASSERT(i >= 0);
     Num = wbh->wbh_NumInfo;
     i++;
     nwbi = wbi+1;
-    chassert(To+1 >= nwbi->wbi_From); /* one melt must be possible */
+    ASSERT(To+1 >= nwbi->wbi_From); /* one melt must be possible */
 
-    chassert(i < Num); /* one info entry must be following */
+    ASSERT(i < Num); /* one info entry must be following */
     /* find end of melt area */
     /* Note: compare with (Num-1) because i++/nwbi++ must point to valid entry
        (Remember that i is the Index (0..(Num-1))) */
@@ -386,7 +385,7 @@ WBufDoMelt(WBUFHDR *wbh, WBUFHDRINFO *wbi, LONG Offs, LONG To)
 	/* >1 entries are following, need to copy */
 	memmove(wbi+1, nwbi+1, sizeof(*wbi) * (Num-i-1));
     }
-    chassert(wbh->wbh_NumInfo);
+    ASSERT(wbh->wbh_NumInfo);
 }
 
 /*
@@ -430,7 +429,7 @@ WBufUpdateInfo(WBUFHDR *wbh, LONG Offs, LONG Len)
     
     /* if the assertion below fails the CacheFlush() stuff in Write()
        needs to be checked */
-    chassert(wbh->wbh_NumInfo < (MBUFSIZE-1));
+    ASSERT(wbh->wbh_NumInfo < (MBUFSIZE-1));
 	     
     if(wbh->wbh_NumInfo == 0)
     {
@@ -500,7 +499,7 @@ WBufUpdateInfo(WBUFHDR *wbh, LONG Offs, LONG Len)
 	    wbh->wbh_NumInfo++;
 	}
     }
-    chassert(wbh->wbh_NumInfo);
+    ASSERT(wbh->wbh_NumInfo);
 }
 
 #define WBufCacheFull(wbc) (wbc->wbc_WBufsMax <= wbc->wbc_WBufsUsed)
@@ -553,7 +552,7 @@ WBufSeekAndPrepare(Global_T *g, EFH *efh, WBUFCLUSTER *wbc, LONG NewPos,
 	    {
 		prev_wbh = wbh;
 		wbh = NEXT(wbh);
-		chassert(wbh);
+		ASSERT(wbh);
 	    }
 	    if(wbh->wbh_FileOffs > NewPos)
 	    {
@@ -565,7 +564,7 @@ WBufSeekAndPrepare(Global_T *g, EFH *efh, WBUFCLUSTER *wbc, LONG NewPos,
 	    {
 		relpos = INSERT;
 	    }
-	    chassert(wbh);
+	    ASSERT(wbh);
 	    wbc->wbc_PosData = wbh;
 	}
     }
@@ -638,12 +637,12 @@ WBufWrite(Global_T *g, EFH *efh, WBUFCLUSTER *wbc, UBYTE *Buf, LONG Num,
     WBUFHDR *wbh;
     LONG Pos, Offs, BufSize;
 
-    chassert(POS(wbc));
+    ASSERT(POS(wbc));
     
     wbh = POS(wbc);
     Pos = wbc->wbc_FilePos;
     
-    chassert(Pos >= wbh->wbh_FileOffs);
+    ASSERT(Pos >= wbh->wbh_FileOffs);
 
     if(Pos >= (wbh->wbh_FileOffs + MBUFSIZE))
     {
@@ -688,8 +687,8 @@ WBufWrite(Global_T *g, EFH *efh, WBUFCLUSTER *wbc, UBYTE *Buf, LONG Num,
 	}
     }
     Offs = Pos - wbh->wbh_FileOffs;
-    chassert(Offs >= 0);
-    chassert(Offs < MBUFSIZE);
+    ASSERT(Offs >= 0);
+    ASSERT(Offs < MBUFSIZE);
 
     BufSize = MBUFSIZE - Offs;
     To = wbh->wbh_Data + Offs;
@@ -701,7 +700,7 @@ WBufWrite(Global_T *g, EFH *efh, WBUFCLUSTER *wbc, UBYTE *Buf, LONG Num,
 
     /* make sure one info structure is always available */
 
-    chassert(wbc->wbc_PosData->wbh_NumInfo > 0);
+    ASSERT(wbc->wbc_PosData->wbh_NumInfo > 0);
     
     if((wbc->wbc_PosData->wbh_NumInfo+1) >= WBUFHDRINFOSIZE)
     {
@@ -728,14 +727,14 @@ wc_WriteCache(Global_T *g, EFH *efh, UBYTE *Buf, LONG Num, LONG *Res2)
     LONG BufsNeeded;
     LONG Res1 = -1;
 
-    chassert(Num > 0);
-    AKDEBUG((0,"\twc_WriteCache(0x%08lx, %08lx, %08lx)\n", efh, Buf, Num));
+    ASSERT(Num > 0);
+    D(DBF_ALWAYS,"\twc_WriteCache(0x%08lx, %08lx, %08lx)", efh, Buf, Num);
     do
     {
 	if(!(wbc = efh->efh_WBuf))
 	{
 	    /* no data cache */
-	    AKDEBUG((0,"\t\tno cache attached\n"));
+	    D(DBF_ALWAYS,"\t\tno cache attached");
 
 	    /* does not harm if caled without cache */
 	    Res1 = FlushCacheAndWrite(g, efh, Buf, Num, Res2);
@@ -816,13 +815,13 @@ iwc_FlushCache(Global_T *g, EFH *efh, LONG IgnoreEmptyBlocks, LONG *Res2)
     WBUFHDRINFO *wbi;
     LONG i, Res1 = DOSTRUE;
 
-    AKDEBUG((0, "\twc_FlushCache(0x%08lx)\n", efh));
+    D(DBF_ALWAYS, "\twc_FlushCache(0x%08lx)", efh);
     
     while(wbh = WBufRemHead(efh->efh_WBuf))
     {
 	LONG Len, DummyLen;
 
-	AKDEBUG((0, "\t\twbh = 0x%08lx\n", wbh));
+	D(DBF_ALWAYS, "\t\twbh = 0x%08lx", wbh);
 
 	i = wbh->wbh_NumInfo;
 
@@ -830,19 +829,19 @@ iwc_FlushCache(Global_T *g, EFH *efh, LONG IgnoreEmptyBlocks, LONG *Res2)
 	{
 	    extern void log_end(void);
 	    log_end();
-	    chassert(i > 0);
+	    ASSERT(i > 0);
 	}
 	else
 	{
 	    wbi = wbh->wbh_Info;
 	    while(i--)
 	    {
-		chassert((wbi->wbi_To-wbi->wbi_From+1)>0);
+		ASSERT((wbi->wbi_To-wbi->wbi_From+1)>0);
 #ifdef DEBUG
 		if(i)
 		{
 		    /* [0] mut be before [1], else a melting error has happend */
-		    chassert((wbi->wbi_To + 1) < wbi[1].wbi_From);
+		    ASSERT((wbi->wbi_To + 1) < wbi[1].wbi_From);
 		}
 #endif
 		if(g->g_NFSGlobal.ng_NumWRPCs > 1)
@@ -884,11 +883,11 @@ iwc_FlushCache(Global_T *g, EFH *efh, LONG IgnoreEmptyBlocks, LONG *Res2)
 #ifdef DEBUG
     if(Res1 == DOSTRUE)
     {
-	AKDEBUG((0, "\t\t-- OK\n"));
+    	D(DBF_ALWAYS, "\t\t-- OK");
     }
     else
     {
-	AKDEBUG((0, "\t\t-- FAILURE\n"));
+    	D(DBF_ALWAYS, "\t\t-- FAILURE");
     }
 #endif
     return Res1;

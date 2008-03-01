@@ -5,6 +5,12 @@ aNFS Open Source - ChangeLog
 $Id$
 $URL$
 
+2008-03-01  Jens Langner <Jens.Langner@light-speed.de>
+
+  * misc: replaced the old obsolete chdebug.h debugging framework with our
+    newly added debug framework so that we can get nfs_handler to a more
+    stable build more quickly.
+
 2008-02-29  Jens Langner <Jens.Langner@light-speed.de>
 
   * misc: added new Debug framework and converted some obsolete aunet_#?
