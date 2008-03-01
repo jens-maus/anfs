@@ -74,6 +74,17 @@ OBJS = $(OBJDIR)/actions.o    \
        $(OBJDIR)/filesys.o    \
        $(OBJDIR)/lock.o       \
        $(OBJDIR)/object.o     \
+       $(OBJDIR)/info.o       \
+       $(OBJDIR)/timer.o      \
+       $(OBJDIR)/read.o       \
+       $(OBJDIR)/write.o      \
+       $(OBJDIR)/iocontrol.o  \
+       $(OBJDIR)/find.o       \
+       $(OBJDIR)/seek.o       \
+       $(OBJDIR)/link.o       \
+       $(OBJDIR)/log.o        \
+       $(OBJDIR)/nfs.o        \
+       $(OBJDIR)/attrs.o      \
        $(OBJDIR)/Debug.o
 
 #

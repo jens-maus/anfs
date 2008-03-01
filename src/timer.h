@@ -31,7 +31,7 @@
 
 struct SyncTimer
 {
-    struct timerequest *st_Req;
+    struct TimeRequest *st_Req;
     struct DosPacket *st_Pkt;
     ULONG st_Flags;
 };

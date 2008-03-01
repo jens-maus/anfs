@@ -42,11 +42,11 @@ ti_StartTimer(SyncTimer *st)
 {
     st->st_Pkt->dp_Type = ACTION_TIMER;
     
-    st->st_Req->tr_node.io_Command = TR_ADDREQUEST;
-    st->st_Req->tr_time.tv_secs = SYNC_TIME;
-    st->st_Req->tr_time.tv_micro = 0;
+    st->st_Req->Request.io_Command = TR_ADDREQUEST;
+    st->st_Req->Time.Seconds = SYNC_TIME;
+    st->st_Req->Time.Microseconds = 0;
 
-    SendIO(&st->st_Req->tr_node);
+    SendIO(&st->st_Req->Request);
 
     st->st_Flags |= STF_TIMER_USED;
 }
@@ -63,20 +63,22 @@ ti_Cleanup(Global_T *g)
 	{
 	    if(st->st_Flags & STF_TIMER_USED)
 	    {
-		if(!CheckIO(&st->st_Req->tr_node))
-		    AbortIO(&st->st_Req->tr_node);
-		WaitIO(&st->st_Req->tr_node);
+    		if(!CheckIO(&st->st_Req->Request))
+		      AbortIO(&st->st_Req->Request);
+
+    		WaitIO(&st->st_Req->Request);
 	    }
-	    if(st->st_Flags & STF_DEVICE_OPEN)
-	    {
-		CloseDevice(&st->st_Req->tr_node);
-	    }
+
+      if(st->st_Flags & STF_DEVICE_OPEN)
+		    CloseDevice(&st->st_Req->Request);
 	}
     }
+
     if(st->st_Pkt)
-	FreeVec(st->st_Pkt);
+    	FreeVec(st->st_Pkt);
+
     if(st->st_Req)
-	DeleteIORequest(st->st_Req);
+	    DeleteIORequest(st->st_Req);
     
     memset(st, 0, sizeof(*st));
 #endif
@@ -92,17 +94,16 @@ ti_Init(Global_T *g)
     SyncTimer *st = &g->g_SyncTimer;
     
     st->st_Pkt = AllocVec(sizeof (DOSPKT), MEMF_CLEAR | MEMF_PUBLIC);
-    st->st_Req = CreateIORequest(g->g_Port, sizeof (struct timerequest));
+    st->st_Req = CreateIORequest(g->g_Port, sizeof(struct TimeRequest));
 
     if(st->st_Pkt && st->st_Req)
     {
 	/* make StandardPacket linkage */
 	
-	st->st_Pkt->dp_Link = &st->st_Req->tr_node.io_Message;
-	st->st_Req->tr_node.io_Message.mn_Node.ln_Name =
-	    (UBYTE *) st->st_Pkt;
+	st->st_Pkt->dp_Link = &st->st_Req->Request.io_Message;
+	st->st_Req->Request.io_Message.mn_Node.ln_Name = (UBYTE *) st->st_Pkt;
 
-	if(OpenDevice(TIMERNAME, UNIT_VBLANK, &st->st_Req->tr_node, 0) == 0)
+	if(OpenDevice(TIMERNAME, UNIT_VBLANK, &st->st_Req->Request, 0) == 0)
 	{
 	    st->st_Flags = STF_DEVICE_OPEN;
 	    RetVal = 1;

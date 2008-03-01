@@ -7,6 +7,10 @@ $URL$
 
 2008-03-01  Jens Langner <Jens.Langner@light-speed.de>
 
+  * misc: adapted more of the old sources to get them compiled again. However,
+    it seems the whole definition for the FTHash#? stuff is missing and we
+    have to reimplement that or even replace it someone. This might be some
+    work, indeed. :/
   * misc: replaced the old obsolete chdebug.h debugging framework with our
     newly added debug framework so that we can get nfs_handler to a more
     stable build more quickly.

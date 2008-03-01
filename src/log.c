@@ -34,7 +34,7 @@
 #include <proto/exec.h>
 #include <proto/dos.h>
 
-#include <clib/netlib_protos.h> /* for SPrintf */
+//#include <clib/netlib_protos.h> /* for SPrintf */
 
 #include <stdarg.h>
 #include <time.h>
@@ -56,9 +56,11 @@ static LONG Dest;
 char *log_name = "nfsh";
 int log_init_done = 0;
 
+/*
 extern __stdargs void DPutFmt(char *format, va_list values);
 __asm void MyAKPrintF (register __a0 const char *format, 
 		       register __a1 void *data);
+*/
 
 void
 log_SetPar(void)
@@ -109,6 +111,7 @@ xlocaltime(time_t t, struct tm *mtm)
     mtm->tm_mday = t;
 }
 
+/*
 #if 0
 void akprintf(int level, const char *fmt,...)
 {
@@ -120,7 +123,7 @@ void akprintf(int level, const char *fmt,...)
     time_t now;
     struct tm mytm;
     static time_t lasttime;
-    static char timestr[30]; /* speedup */
+    static char timestr[30]; // speedup
 #endif
 
     
@@ -151,7 +154,7 @@ void akprintf(int level, const char *fmt,...)
 #endif
 	if(now != lasttime)
 	{
-	    /* speedup */
+	    // speedup
 	    xlocaltime(now, &mytm);
 	    lasttime = now;
 #if 0
@@ -176,7 +179,7 @@ void akprintf(int level, const char *fmt,...)
     struct DateStamp Now;
     LONG now;
     static lasttime;
-    static char timestr[30]; /* speedup */
+    static char timestr[30]; // speedup
     
     if (level >= kdebug)
     {
@@ -197,7 +200,7 @@ void akprintf(int level, const char *fmt,...)
 	{
 	    LONG hour, min;
 	    
-	    /* speedup */
+	    // speedup
 	    lasttime = now;
 	    min = Now.ds_Minute;
 	    hour = min/60;
@@ -225,6 +228,7 @@ void akprintf(int level, const char *fmt,...)
     }
 }
 #endif
+*/
 #else
 void log_end(void) {}
 #endif /* DEBUG */

@@ -72,6 +72,8 @@
 #define CG_MNTHOST 103
 #define CG_MNTDIR 104
 
+extern int kdebug;
+
 struct Code
 {
     UBYTE *Cmd;
@@ -110,7 +112,7 @@ act_IOCONTROL(Global_T *g, DOSPKT *pkt)
     
     struct  RexxMsg *rmsg;
     ULONG ui;
-    struct timeval tv;
+    struct TimeVal tv;
     LONG RxErr = 0;
     const UBYTE *cs;
     
@@ -312,14 +314,14 @@ act_IOCONTROL(Global_T *g, DOSPKT *pkt)
     case CS_RPCTO:
 	    i = atoi(Buf);
 	    ui = max(RPC_TIMEOUT_MIN, min(RPC_TIMEOUT_MAX, i));
-	    tv.tv_sec = ui;
-	    tv.tv_usec = 0;
+	    tv.Seconds = ui;
+	    tv.Microseconds = 0;
 	    clnt_control(g->g_NFSClnt, CLSET_TIMEOUT, &tv);
 	    clnt_control(g->g_NFSClnt, CLGET_TIMEOUT, &tv);
-	    g->g_RPCTimeout = tv.tv_sec;
+	    g->g_RPCTimeout = tv.Seconds;
 	
-	    tv.tv_sec = g->g_RPCTimeout/5;
-	    tv.tv_usec = 0;
+	    tv.Seconds = g->g_RPCTimeout/5;
+	    tv.Microseconds = 0;
 	    clnt_control(g->g_NFSClnt, CLSET_RETRY_TIMEOUT, &tv);
 	    break;
     case CG_TR:
